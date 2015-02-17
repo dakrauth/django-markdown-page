@@ -1,3 +1,5 @@
+'''
+'''
 import re
 import unicodedata
 from django.conf import settings
@@ -26,7 +28,7 @@ class MDPageConf(object):
         'demote-headers': +1,
         'wiki-tables': True,
         'tables': True,
-        'fenced-code-blocks': True
+        'fenced-code-blocks': {}
     }
     context_conf = {
         'show_history_link': False,
@@ -47,9 +49,6 @@ mdpage_conf = MDPageConf(getattr(settings, 'MARKDOWN_PAGE', {}))
 #===============================================================================
 class MDPageMarkdown(Markdown):
     
-    _color_code_re =  re.compile(r'^(?::::|#!)([\w_+-]+)\s')
-    extras = ['footnotes', 'link-patterns']
-
     #---------------------------------------------------------------------------
     def __init__(self, make_mdpage_link, *args, **kws):
         super(MDPageMarkdown, self).__init__(*args, **kws)
@@ -66,41 +65,23 @@ class MDPageMarkdown(Markdown):
         )
 
     #---------------------------------------------------------------------------
-    def _do_link_patterns(self, text):
-        text = super(MDPageMarkdown, self)._do_link_patterns(text)
+    def _run_span_gamut(self, text):
         if self.make_mdpage_link:
-            return mdpage_conf.mdpage_re.sub(self.mdpage_pattern_repl, text)
-        else:
-            return text
+            text = mdpage_conf.mdpage_re.sub(self.mdpage_pattern_repl, text)
         
-    #---------------------------------------------------------------------------
-    def _code_block_sub(self, match):
-        codeblock = self._outdent(match.group(1))
-        codeblock = self._detab(codeblock).lstrip('\n').rstrip()
-
-        m = self._color_code_re.match(codeblock)
-        if not m:
-            return "\n<pre><code>{}</code></pre>\n".format(self._encode_code(codeblock))
-
-        junk, rest = codeblock.split('\n', 1)
-        lexer = self._get_pygments_lexer(m.group(1))
-        if lexer:
-            codeblock = rest.lstrip("\n")   # Remove lexer declaration line.
-            fmt_opts = self.extras['code-color'] or {}
-            colored = self._color_with_pygments(codeblock, lexer, **fmt_opts)
-            return "\n\n{}\n\n".format(colored)
+        return super(MDPageMarkdown, self)._run_span_gamut(text)
 
 
 #-------------------------------------------------------------------------------
 def markdown(text, make_mdpage_link=None):
-    mdww = MDPageMarkdown(
+    md = MDPageMarkdown(
         make_mdpage_link,
         link_patterns=mdpage_conf.link_patterns,
         extras=mdpage_conf.extras
     )
-    html = unicode(mdww.convert(text))
+    html = unicode(md.convert(text))
     if mdpage_conf.table_classes:
-        html.replace('<table>', '<table class="{}">'.format(mdpage_conf.table_classes))
+        html = html.replace('<table>', '<table class="{}">'.format(mdpage_conf.table_classes))
 
     return html
 

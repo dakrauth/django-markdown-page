@@ -127,3 +127,19 @@ End a line with two or more spaces:
 
     Roses are red,   
     Violets are blue.
+
+
+Syntax Highlighted Code
+-----------------------
+
+    ```javascript
+
+
+    (function() {
+        var do_it = function() {
+            return true;
+        };
+    
+        var x = do_it(2 * 3);
+    }());
+    ```

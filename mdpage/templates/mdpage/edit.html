@@ -12,8 +12,24 @@
         {% endbuttons %}
     </form>
     <hr>
-    <div class="markdown">{% load mdpage_tags %}
-    {% include "mdpage/cheatsheet.html" %}
+    {% load mdpage_tags %}
+    {% markdown %}
+Hello, world
+============
+
+* abcd
+* asdfasdf
+
+Some code:
+
+
+{% endmarkdown %}
+    
+    <hr>
+    <div class="markdown">
+        {% markdown %}
+        {% include "mdpage/cheatsheet.text" %}
+        {% endmarkdown %}
     </div>
 {% endblock %}
 {% block extra_body %}
