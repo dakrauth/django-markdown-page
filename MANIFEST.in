@@ -1,0 +1,5 @@
+include README.rst
+include LICENSE
+include MANIFEST.in
+recursive-include mdpage *.py
+recursive-include mdpage/templates/mdpage/ *.html *.text 

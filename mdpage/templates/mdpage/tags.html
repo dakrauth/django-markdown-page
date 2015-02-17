@@ -1,0 +1,23 @@
+{% extends "mdpage/base.html" %}
+{% block title %}Wiki Tags{% endblock %}
+{% block page_title %}Wiki Tag Cloud{% endblock %}
+{% block mdpage_content %}
+    {% with mdp_type.get_absolute_url as mdpt_url  %}
+    
+    {% endwith %}
+    <div id="tags">{% for tag in mdpage_tags %}
+        <small>
+            <a class="cloud-{{ tag.count }} badge" style="font-size:1.{{ tag.font_size }}em" href="{{ mdpt_url }}?tag={{ tag }}">{{ tag }}&nbsp;({{ tag.count }})</a>
+        </small>
+    {% endfor %}</div>
+    
+    {% if user.is_authenticated %}
+    <div class="clearfix">
+        <hr />
+        <ul>
+            <li><a href="{{ mdpt_url }}?tag-edit">Edit tags</a></li>
+            <li><a href="{{ mdpt_url }}?tag">Tag cloud</a></li>
+        </ul>
+    </div>
+    {% endif %}
+{% endblock %}

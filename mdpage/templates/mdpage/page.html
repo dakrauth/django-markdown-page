@@ -1,0 +1,58 @@
+{% extends "mdpage/base.html" %}
+{% block title %}{{ page.title }}{% endblock %}
+{% block page_title %}{% if page %}{{ page.title }}{% else %}{{ context.description }}{% endif %} {% endblock %}
+{% block mdpage_content %}
+{% with user.is_authenticated as is_auth  %}
+{% if page %}
+<p>
+    <span class="label label-default text-uppercase">{{ page.updated|date }}</span>
+    {% if is_auth or mdpage.show_history_link %}<a href="{{ page.history_url }}">History</a> &middot;{% endif %}
+    {% if is_auth or mdpage.show_text_link %}<a href="{{ page.text_url }}">Text</a> &middot;{% endif %}
+    {% if is_auth %}<a href="{{ page.edit_url }}">Edit</a>{% endif %}
+</p>
+
+<div class="markdown">
+    {{ page.safe_html|default:"This page is currently blank." }}
+</div>
+<hr>
+{% if mdpage.show_tags and page.tags.count %}
+<p class="well well-sm">Topics: {% for tag in page.tags.all %}
+    <a class="badge" href="{{ page.type.get_absolute_url }}?tag={{ tag }}">{{ tag }}</a>
+{% endfor %}</p>{% endif %}
+{% endif %}
+{% if is_auth %}
+<p class="text-center text-muted">
+    <em><small>{% with page.latest_archive as arc %}
+    Version {{ page.version }} by {{ arc.user }} | 
+    Created: {{ page.created|date:"D, j M y P" }} | 
+    Updated: {{ page.updated|date:"D, j M y P" }}
+    {% endwith %}
+    </small></em>
+</p>
+{% endif %}
+{% endwith %}
+{% endblock %}
+
+{% block mdpage_extra %}
+{% if 0 %}
+<h2 class="heading wiki-title">
+    <div class="mdpage-menu"><a href="{% url 'mdpage_attach' page.slug %}">Upload Attachment</a></div>
+</h2>
+
+{% with page.staticcontent_set.all as content %}
+{% if content %}
+<ul id="content-list"> {% for c in content %}
+    <li>
+        <strong><a href="{{ c.path }}">{{ c.path.basename }}</a></strong> &mdash;
+        {{ c.media.size|filesizeformat }} | {{ c.mimetype }} |
+        {{ c.path }}
+        {% if c.description %}
+        <p><em>{{ c.description }}</em></p>{% endif %}
+    </li> {% endfor %}
+</ul>
+{% else %}
+<p><em>&mdash; No Content &mdash;</em></p>
+{% endif %}
+{% endwith %}
+{% endif %}
+{% endblock mdpage_extra %}

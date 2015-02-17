@@ -1,0 +1,37 @@
+{% extends "mdpage/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block mdpage_content %}
+    {% with mdp_type.get_absolute_url as mdpt_url %}
+    <p class="well well-sm">
+        {{ count }} total page(s) <span class="sep">|</span>
+        <a href="{{ mdpt_url }}?recent">Recent Activity</a> 
+    </p>
+    <section>
+        {% for letter,pages in listing %}
+        <div class="page-group">
+            <p><span class="label label-primary">{{ letter.upper }}</span></p>
+            <ul class="list-unstyled"> {% for page in pages %}
+                <li>
+                    <a href="{{ page.get_absolute_url }}">{{ page.title }}</a>
+                </li> {% endfor %}
+            </ul>
+        </div>
+        {% empty %}
+        <em>Sorry, no pages created yet.</em>
+        {% endfor %}
+    </section>
+
+    {% with mdp_type.tags as tags  %}
+    {% if tags %}
+    <div id="tags" class="span-5 last">
+        <h2>Topics</h2>
+        <ul class="list-unstyled">{% for tag in tags %}
+            <li><a href="{{ mdpt_url }}?tag={{ tag.name }}">{{ tag.name }}</a>&nbsp({{ tag.counter }})</li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    {% endwith %}
+    {% endwith %}
+{% endblock %}

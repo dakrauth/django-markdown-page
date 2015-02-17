@@ -1,0 +1,12 @@
+{% extends "mdpage/base.html" %}
+{% block title %}Search Results{% endblock %}
+{% block page_title %}Search Results{% endblock %}
+{% block mdpage_content %}
+    {% if pages %}
+    <ul> {% for p in pages %}
+        <li><a href="{{ p.get_absolute_url }}">{{ p.title }}</a></li>    
+    {% endfor %}</ul>
+    {% else %}
+    <p><em>No results matching query</em></p>
+    {% endif %}
+{% endblock %}

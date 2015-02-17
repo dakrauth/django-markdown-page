@@ -1,0 +1,41 @@
+{% extends "mdpage/base.html" %}
+{% block title %}Edit {{ page.title }}{% endblock %}
+{% block page_title %}
+    {% if page %}{{ page.title }}{% else %}Create New Page{% endif %}
+{% endblock %}
+{% block mdpage_content %}
+    {% load bootstrap3 %}
+    <form class="mdpage-form" action="" method="post" accept-charset="utf-8">{% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons %}
+        <button type="submit" class="btn btn-primary">Save</button>
+        {% endbuttons %}
+    </form>
+    <hr>
+    <div class="markdown">{% load mdpage_tags %}
+    {% include "mdpage/cheatsheet.html" %}
+    </div>
+{% endblock %}
+{% block extra_body %}
+    {{ block.super }}
+    <script>
+        $(function() {
+            $('#id_text').keydown(function(e) {
+                if(e.keyCode === 9) { // tab was pressed
+                    // get caret position/selection
+                    var start = this.selectionStart;
+                    var value = this.value;
+
+                    // set textarea value to: text before caret + tab + text after caret
+                    this.value = value.substring(0, start)
+                               + "    "
+                               + value.substring(this.selectionEnd);
+
+                    // put caret at right position again (add one for the tab)
+                    this.selectionStart = this.selectionEnd = start + 4;
+                    return false;
+                }
+            });
+        });
+    </script>
+{% endblock extra_body %}

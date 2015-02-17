@@ -1,0 +1,27 @@
+{% extends "mdpage/base.html" %}
+{% block title %}Recent Changes{% endblock %}
+{% block page_title %}Recent Changes{% endblock %}
+{% block mdpage_content %}
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th >Last Update</th>
+                <th >Author</th>
+                <th >Created</th>
+                <th >Length</th>
+                <th >Versions</th>
+                <th>Page</th>
+            </tr>
+        </thead>
+        <tbody>{% for page in pages %}
+            <tr>
+                <td>{{ page.updated }}</td>
+                <td>{{ page.latest_archive.user|default:""}}</td>
+                <td>{{ page.created }}</td>
+                <td>{{ page.source|length|filesizeformat }}</td>
+                <td>{{ page.version }}</td>
+                <td><a href="{{ page.get_absolute_url }}">{{ page.title }}</a></td>
+            </tr>{% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

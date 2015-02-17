@@ -1,0 +1,36 @@
+{% extends "mdpage/base.html" %}
+{% block title %}Revision History{% endblock %}
+{% block page_title %}Revision History for {{ page.title }}{% endblock %}
+{% block mdpage_content %}
+    <p><a href="{{ page.get_absolute_url }}">Back to {{ page.title }}</a></p>
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th class="center">Version</th>
+                <th class="center">Update</th>
+                <th class="center">Author</th>
+                <th class="center">Length</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for arc in page.markdownwikiarchive_set.all %}
+            <tr class="{% cycle 'odd' 'even' %}">
+                <td class="center">{{ arc.version }}</td>
+                <td class="center">{{ arc.created }}</td>
+                <td class="center">{{ arc.user|default:""}}</td>
+                <td class="center">{{ arc.text|length|filesizeformat }}</td>
+                <td class="center">
+                    <a href="{% url 'wiki_page_version' ctx=page.context.slug slug=page.slug version=arc.id %}">View {% if request.is_superuser %}{{ arc.id }}{% endif %}</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    {% if archive %}
+    <h2 class="heading" id="wiki-title">Version {{ archive.version }}</h2>
+    <pre class="markdown">{{ archive.text }}
+    </pre>
+    {% endif %}
+{% endblock %}

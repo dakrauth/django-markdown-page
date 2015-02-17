@@ -1,0 +1,13 @@
+{% extends "mdpage/base.html" %}
+{% block title %}Attach to {{ page }}{% endblock %}
+{% block page_title %}{{ page }} Attachment{% endblock %}
+{% block mdpage_content %}
+
+<form action="" method="post" enctype="multipart/form-data" accept-charset="utf-8">
+    <table>
+        {{ form }}
+    </table>
+    <p><input type="submit" value="Attach"></p>
+</form>
+
+{% endblock mdpage_content %}
