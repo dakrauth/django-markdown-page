@@ -66,10 +66,16 @@ class MarkdownPageType(MarkdownPageBase):
     
     abbr        = models.SlugField(max_length=32, unique=True, blank=True)
     description = models.CharField(max_length=100, blank=True)
-    permission  = models.CharField(
+    read_perms  = models.CharField(
         max_length=5,
         choices=Permission.CHOICES,
         default=Permission.DEFAULT,
+        db_index=True
+    )
+    write_perms  = models.CharField(
+        max_length=5,
+        choices=Permission.CHOICES,
+        default=Permission.STAFF,
         db_index=True
     )
     

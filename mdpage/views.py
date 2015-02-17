@@ -158,10 +158,36 @@ HOME_OPTIONS = (
     ('list',     _mdpage_page_listing),
 )
 
+from mdpage.auth_utils import login_user
+
+#-------------------------------------------------------------------------------
+def get_mdpage_type(request, abbr):
+    mdp_type   = get_object_or_404(MarkdownPageType.published, abbr=abbr)
+    read_perms = mdp_type.read_perms
+    Permission = mdp_type.Permission
+    
+    if read_perms == Permission.PUBLIC:
+        return mdp_type
+        
+    user = request.user
+    if not user.is_authenticated():
+        return login_user(request)
+
+    if (
+        (user.is_superuser or read_perms == Permission.AUTH) or
+        (read_perms == Permission.STAFF and user.is_staff)
+    ):
+        return mdp_type
+
+    raise PermissionDenied
+
 
 #-------------------------------------------------------------------------------
 def mdpage_listing(request, abbr):
-    mdp_type = get_object_or_404(MarkdownPageType.published, abbr=abbr)
+    mdp_type = get_mdpage_type(request, abbr)
+    if isinstance(mdp_type, http.HttpResponse):
+        return mdp_type
+
     for key,func in HOME_OPTIONS:
         if key in request.GET:
             return func(request, **{'mdp_type': mdp_type, key : request.GET.get(key)})
