@@ -3,23 +3,25 @@ from collections import defaultdict
 from django import http
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, render
+from django.core.exceptions import PermissionDenied
 from django.contrib.auth.views import login
 from django.contrib.auth.decorators import login_required
 from mdpage.models import MarkdownPage, MarkdownPageType, mdpage_conf
-import forms
+from mdpage import forms
+from mdpage.auth_utils import login_user
 
 
 #-------------------------------------------------------------------------------
 def get_page(abbr, slug, raise_404=True):
     mdp_type = get_object_or_404(MarkdownPageType.published, abbr=abbr)
     try:
-        page = mdp_type.markdownpage_set.get(slug=slug)
+        page = MarkdownPage.published.get(type=mdp_type, slug=slug)
     except MarkdownPage.DoesNotExist:
         if raise_404:
-            raise http.Http404('Page not found')
-        else:
-            page = None
-    
+            raise
+        
+        page = None
+        
     return mdp_type, page
 
 
@@ -73,7 +75,6 @@ def _mdpage_edit_tags(request, mdp_type, **opts):
 
 
 #-------------------------------------------------------------------------------
-@login_required
 def mdpage_edit(request, abbr, slug):
     mdp_type, page = get_page(abbr, slug)
     
@@ -158,36 +159,12 @@ HOME_OPTIONS = (
     ('list',     _mdpage_page_listing),
 )
 
-from mdpage.auth_utils import login_user
-
-#-------------------------------------------------------------------------------
-def get_mdpage_type(request, abbr):
-    mdp_type   = get_object_or_404(MarkdownPageType.published, abbr=abbr)
-    read_perms = mdp_type.read_perms
-    Permission = mdp_type.Permission
-    
-    if read_perms == Permission.PUBLIC:
-        return mdp_type
-        
-    user = request.user
-    if not user.is_authenticated():
-        return login_user(request)
-
-    if (
-        (user.is_superuser or read_perms == Permission.AUTH) or
-        (read_perms == Permission.STAFF and user.is_staff)
-    ):
-        return mdp_type
-
-    raise PermissionDenied
+################################################################################
 
 
 #-------------------------------------------------------------------------------
 def mdpage_listing(request, abbr):
-    mdp_type = get_mdpage_type(request, abbr)
-    if isinstance(mdp_type, http.HttpResponse):
-        return mdp_type
-
+    mdp_type = get_object_or_404(MarkdownPageType.published, abbr=abbr)
     for key,func in HOME_OPTIONS:
         if key in request.GET:
             return func(request, **{'mdp_type': mdp_type, key : request.GET.get(key)})
@@ -241,7 +218,6 @@ def mdpage_text(request, abbr, slug):
 
 
 #-------------------------------------------------------------------------------
-@login_required
 def mdpage_attach(request, abbr, slug):
     mdp_type, page = get_page(abbr, slug)
     if request.method == 'POST':

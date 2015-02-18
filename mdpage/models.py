@@ -56,28 +56,8 @@ class MarkdownPageBase(models.Model):
 
 #===============================================================================
 class MarkdownPageType(MarkdownPageBase):
-    
-    #===========================================================================
-    class Permission(ChoiceEnumeration):
-        PUBLIC = ChoiceEnumeration.Option('PUB',   'Public', default=True)
-        AUTH   = ChoiceEnumeration.Option('AUTH',  'Authenticated Users')
-        STAFF  = ChoiceEnumeration.Option('STAFF', 'Staff Users')
-        SUPER  = ChoiceEnumeration.Option('SUPER', 'Super Users')
-    
     abbr        = models.SlugField(max_length=32, unique=True, blank=True)
     description = models.CharField(max_length=100, blank=True)
-    read_perms  = models.CharField(
-        max_length=5,
-        choices=Permission.CHOICES,
-        default=Permission.DEFAULT,
-        db_index=True
-    )
-    write_perms  = models.CharField(
-        max_length=5,
-        choices=Permission.CHOICES,
-        default=Permission.STAFF,
-        db_index=True
-    )
     
     #---------------------------------------------------------------------------
     def __unicode__(self):
