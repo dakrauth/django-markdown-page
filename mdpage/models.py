@@ -56,16 +56,16 @@ class MarkdownPageBase(models.Model):
 
 #===============================================================================
 class MarkdownPageType(MarkdownPageBase):
-    abbr        = models.SlugField(max_length=32, unique=True, blank=True)
+    prefix      = models.SlugField(max_length=50, unique=True, blank=True)
     description = models.CharField(max_length=100, blank=True)
     
     #---------------------------------------------------------------------------
     def __unicode__(self):
-        return self.abbr
+        return self.prefix
     
     #---------------------------------------------------------------------------
     def get_absolute_url(self):
-        return reverse('mdpage-listing', kwargs={'abbr': self.abbr})
+        return reverse('mdpage-listing', kwargs={'prefix': self.prefix})
 
     #---------------------------------------------------------------------------
     def tags(self):
@@ -137,12 +137,12 @@ class MarkdownPage(MarkdownPageBase):
 
     #---------------------------------------------------------------------------
     def __unicode__(self):
-        slug = '{}:'.format(self.type.abbr) if self.type.abbr else ''
+        slug = '{}:'.format(self.type.prefix) if self.type.prefix else ''
         return '{}{}'.format(slug, self.title)
 
     #---------------------------------------------------------------------------
     def _reverse(self, name):
-        return reverse(name, kwargs={'slug': self.slug, 'abbr': self.type.abbr})
+        return reverse(name, kwargs={'slug': self.slug, 'prefix': self.type.prefix})
         
     #---------------------------------------------------------------------------
     def get_absolute_url(self):
@@ -199,7 +199,7 @@ class MarkdownPage(MarkdownPageBase):
     #---------------------------------------------------------------------------
     def make_mdpage_link(self, title):
         slug = utils.slugify(title)
-        return reverse('mdpage_page', kwargs={'abbr': self.type.abbr, 'slug': slug})
+        return reverse('mdpage_page', kwargs={'prefix': self.type.prefix, 'slug': slug})
         
     #---------------------------------------------------------------------------
     def save(self, *args, **kws):

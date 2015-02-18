@@ -12,8 +12,8 @@ from mdpage.auth_utils import login_user
 
 
 #-------------------------------------------------------------------------------
-def get_page(abbr, slug, raise_404=True):
-    mdp_type = get_object_or_404(MarkdownPageType.published, abbr=abbr)
+def get_page(prefix, slug, raise_404=True):
+    mdp_type = get_object_or_404(MarkdownPageType.published, prefix=prefix)
     try:
         page = MarkdownPage.published.get(type=mdp_type, slug=slug)
     except MarkdownPage.DoesNotExist:
@@ -75,8 +75,8 @@ def _mdpage_edit_tags(request, mdp_type, **opts):
 
 
 #-------------------------------------------------------------------------------
-def mdpage_edit(request, abbr, slug):
-    mdp_type, page = get_page(abbr, slug)
+def mdpage_edit(request, prefix, slug):
+    mdp_type, page = get_page(prefix, slug)
     
     data = {'page': page}
     if request.method == 'POST':
@@ -163,13 +163,13 @@ HOME_OPTIONS = (
 
 
 #-------------------------------------------------------------------------------
-def mdpage_listing(request, abbr):
-    mdp_type = get_object_or_404(MarkdownPageType.published, abbr=abbr)
+def mdpage_listing(request, prefix):
+    mdp_type = get_object_or_404(MarkdownPageType.published, prefix=prefix)
     for key,func in HOME_OPTIONS:
         if key in request.GET:
             return func(request, **{'mdp_type': mdp_type, key : request.GET.get(key)})
 
-    mdp_type, page = get_page(abbr, mdpage_conf.home_title, False)
+    mdp_type, page = get_page(prefix, mdpage_conf.home_title, False)
     if not page:
         return _mdpage_page_listing(request, mdp_type)
 
@@ -180,21 +180,21 @@ def mdpage_listing(request, abbr):
 
 
 #-------------------------------------------------------------------------------
-def mdpage_history(request, abbr, slug):
-    mdp_type, page = get_page(abbr, slug)
+def mdpage_history(request, prefix, slug):
+    mdp_type, page = get_page(prefix, slug)
     return mdpage_render(request, mdp_type, 'mdpage/history.html', {'page': page})
 
 
 #-------------------------------------------------------------------------------
-def mdpage_version(request, abbr, slug, version):
-    mdp_type, page = get_page(abbr, slug)
+def mdpage_version(request, prefix, slug, version):
+    mdp_type, page = get_page(prefix, slug)
     archive = page.markdownpagearchive_set.get(id=version)
     return mdpage_render(request, mdp_type, 'mdpage/history.html', {'page': page, 'archive': archive})
 
 
 #-------------------------------------------------------------------------------
-def mdpage_view(request, abbr, slug):
-    mdp_type, page = get_page(abbr, slug, False)
+def mdpage_view(request, prefix, slug):
+    mdp_type, page = get_page(prefix, slug, False)
     if page:
         return mdpage_render(request, mdp_type, 'mdpage/page.html', {
             'page': page,
@@ -206,20 +206,20 @@ def mdpage_view(request, abbr, slug):
     
     return _mdpage_new_page(
         request,
-        get_object_or_404(MarkdownPageType, slug=abbr),
+        get_object_or_404(MarkdownPageType, slug=prefix),
         new=slug.capitalize()
     )
 
 
 #-------------------------------------------------------------------------------
-def mdpage_text(request, abbr, slug):
-    mdp_type, page = get_page(abbr, slug)
+def mdpage_text(request, prefix, slug):
+    mdp_type, page = get_page(prefix, slug)
     return http.HttpResponse(page.text, content_type="text/plain; charset=utf8")
 
 
 #-------------------------------------------------------------------------------
-def mdpage_attach(request, abbr, slug):
-    mdp_type, page = get_page(abbr, slug)
+def mdpage_attach(request, prefix, slug):
+    mdp_type, page = get_page(prefix, slug)
     if request.method == 'POST':
         form =  forms.ContentForm(request.POST, request.FILES)
         if form.is_valid():

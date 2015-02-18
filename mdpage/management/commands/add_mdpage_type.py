@@ -7,6 +7,6 @@ class Command(BaseCommand):
     help = 'Add MarkdownPageType.'
     
     #---------------------------------------------------------------------------
-    def handle(self, abbr, description='', **options):
-        mdpt = MarkdownPageType.objects.create(abbr=abbr, description=description)
+    def handle(self, prefix, description='', **options):
+        mdpt = MarkdownPageType.objects.create(prefix=prefix, description=description)
         print mdpt, 'created'
