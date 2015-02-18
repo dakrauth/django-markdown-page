@@ -8,7 +8,6 @@ from django.contrib.auth.views import login
 from django.contrib.auth.decorators import login_required
 from mdpage.models import MarkdownPage, MarkdownPageType, mdpage_conf
 from mdpage import forms
-from mdpage.auth_utils import login_user
 
 
 #-------------------------------------------------------------------------------
