@@ -7,7 +7,21 @@
         {{ count }} total page(s) <span class="sep">|</span>
         <a href="{{ mdpt_url }}?recent">Recent Activity</a> 
     </p>
-    <section>
+    <style>
+        .page-index {
+            -webkit-columns: 3 150px;
+               -moz-columns: 3 150px;
+                    columns: 3 150px;
+            -webkit-column-gap: 2em;
+               -moz-column-gap: 2em;
+                    column-gap: 2em;
+            -webkit-column-rule: 1px dotted #ddd;
+               -moz-column-rule: 1px dotted #ddd;
+                    column-rule: 1px dotted #ddd;
+            
+        }
+    </style>
+    <section class="page-index">
         {% for letter,pages in listing %}
         <div class="page-group">
             <p><span class="label label-primary">{{ letter.upper }}</span></p>

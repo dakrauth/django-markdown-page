@@ -3,8 +3,6 @@ from collections import defaultdict
 from django import http
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, render
-from django.core.exceptions import PermissionDenied
-from django.contrib.auth.views import login
 from django.contrib.auth.decorators import login_required
 from mdpage.models import MarkdownPage, MarkdownPageType, mdpage_conf
 from mdpage import forms
