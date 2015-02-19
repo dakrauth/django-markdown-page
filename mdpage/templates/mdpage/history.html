@@ -14,14 +14,14 @@
             </tr>
         </thead>
         <tbody>
-            {% for arc in page.markdownwikiarchive_set.all %}
+            {% for arc in page.markdownpagearchive_set.all %}
             <tr class="{% cycle 'odd' 'even' %}">
                 <td class="center">{{ arc.version }}</td>
                 <td class="center">{{ arc.created }}</td>
                 <td class="center">{{ arc.user|default:""}}</td>
                 <td class="center">{{ arc.text|length|filesizeformat }}</td>
                 <td class="center">
-                    <a href="{% url 'wiki_page_version' ctx=page.context.slug slug=page.slug version=arc.id %}">View {% if request.is_superuser %}{{ arc.id }}{% endif %}</a>
+                    <a href="{{ arc.get_absolute_url }}">View {{ arc.version }}</a>
                 </td>
             </tr>
             {% endfor %}
@@ -29,7 +29,7 @@
     </table>
     
     {% if archive %}
-    <h2 class="heading" id="wiki-title">Version {{ archive.version }}</h2>
+    <h2 class="heading" id="wiki-title">{{ archive }} <small>{{ archive.text|length }} bytes</small></h2>
     <pre class="markdown">{{ archive.text }}
     </pre>
     {% endif %}

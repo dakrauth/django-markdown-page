@@ -250,8 +250,16 @@ class MarkdownPageArchive(models.Model):
 
     #---------------------------------------------------------------------------
     def __unicode__(self):
-        return self.page.title
+        return '{} version {}'.format(self.page.title, self.version)
 
+    #---------------------------------------------------------------------------
+    def get_absolute_url(self):
+        return reverse('mdpage-history', kwargs={
+            'prefix': self.page.type.prefix,
+            'slug': self.page.slug,
+            'version': self.version
+        })
+        
     #---------------------------------------------------------------------------
     @property
     def safe_html(self):

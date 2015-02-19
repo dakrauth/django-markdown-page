@@ -153,7 +153,6 @@ HOME_OPTIONS = (
     ('recent',   _mdpage_recent_updates),
     ('tag',      _mdpage_list_tags),
     ('tag-edit', _mdpage_edit_tags),
-    ('list',     _mdpage_page_listing),
 )
 
 ################################################################################
@@ -177,16 +176,13 @@ def mdpage_listing(request, prefix):
 
 
 #-------------------------------------------------------------------------------
-def mdpage_history(request, prefix, slug):
+def mdpage_history(request, prefix, slug, version=None):
     mdp_type, page = get_page(prefix, slug)
-    return mdpage_render(request, mdp_type, 'mdpage/history.html', {'page': page})
+    data = {'page': page}
+    if version is not None:
+        data['archive'] = page.markdownpagearchive_set.get(version=version)
 
-
-#-------------------------------------------------------------------------------
-def mdpage_version(request, prefix, slug, version):
-    mdp_type, page = get_page(prefix, slug)
-    archive = page.markdownpagearchive_set.get(id=version)
-    return mdpage_render(request, mdp_type, 'mdpage/history.html', {'page': page, 'archive': archive})
+    return mdpage_render(request, mdp_type, 'mdpage/history.html', data)
 
 
 #-------------------------------------------------------------------------------
