@@ -18,7 +18,7 @@
                 <td>{{ page.updated }}</td>
                 <td>{{ page.latest_archive.user|default:""}}</td>
                 <td>{{ page.created }}</td>
-                <td>{{ page.source|length|filesizeformat }}</td>
+                <td>{{ page.text|length|filesizeformat }}</td>
                 <td>{{ page.version }}</td>
                 <td><a href="{{ page.get_absolute_url }}">{{ page.title }}</a></td>
             </tr>{% endfor %}

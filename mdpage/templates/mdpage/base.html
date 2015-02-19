@@ -6,7 +6,6 @@
         <ul class="list-unstyled list-inline">
             {% if mdp_type.description %}{{ mdp_type.description }}:{% endif %}
             <li><a href="{{ mdpage_listing }}?list">Home</a></li>
-            <li><a href="{{ mdpage_listing }}?tag">Topics</a></li>
             {% if user.is_authenticated %}<li><a href="{{ mdpage_listing }}?new">New</a></li>{% endif %}
         </ul>
         <form action="{{ mdpage_listing }}" class="form-inline" method="get" accept-charset="utf-8">

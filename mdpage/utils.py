@@ -26,7 +26,6 @@ class MDPageConf(object):
     title_splitter      = r'[^\w_-]+'
     table_classes       = 'table table-striped table-bordered'
     mdpage_link_classes   = ''
-    read_login_required = False
     home_title          = 'home'
     extras = {
         'footnotes': True,

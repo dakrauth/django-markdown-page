@@ -1,7 +1,19 @@
 from datetime import datetime
 from django import forms
+from django.forms.models import modelformset_factory
 from django.contrib import messages
 from mdpage import models
+
+#===============================================================================
+class TagForm(forms.ModelForm):
+
+    #===========================================================================
+    class Meta:
+        model = models.MarkdownPage
+        fields = ('tags',)
+
+
+TagsFormset = modelformset_factory(models.MarkdownPage, form=TagForm)
 
 
 #===============================================================================

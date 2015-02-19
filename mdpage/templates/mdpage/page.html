@@ -4,31 +4,35 @@
 {% block mdpage_content %}
 {% with user.is_authenticated as is_auth  %}
 {% if page %}
-<p>
-    <span class="label label-default text-uppercase">{{ page.updated|date }}</span>
-    {% if is_auth or mdpage.show_history_link %}<a href="{{ page.history_url }}">History</a> &middot;{% endif %}
-    {% if is_auth or mdpage.show_text_link %}<a href="{{ page.text_url }}">Text</a> &middot;{% endif %}
-    {% if is_auth %}<a href="{{ page.edit_url }}">Edit</a>{% endif %}
-</p>
+    <div>
+        <span class="label label-default text-uppercase">{{ page.updated|date }}</span>
+        {% if is_auth or mdpage.show_history_link %}<a href="{{ page.history_url }}">History</a> &middot;{% endif %}
+        {% if is_auth or mdpage.show_text_link %}<a href="{{ page.text_url }}">Text</a> &middot;{% endif %}
+        {% if is_auth %}<a href="{{ page.edit_url }}">Edit</a>{% endif %}
+    </div>
 
-<div class="markdown">
-    {{ page.safe_html|default:"This page is currently blank." }}
-</div>
-<hr>
-{% if mdpage.show_tags and page.tags.count %}
-<p class="well well-sm">Topics: {% for tag in page.tags.all %}
-    <a class="badge" href="{{ page.type.get_absolute_url }}?tag={{ tag }}">{{ tag }}</a>
-{% endfor %}</p>{% endif %}
-{% endif %}
-{% if is_auth %}
-<p class="text-center text-muted">
-    <em><small>{% with page.latest_archive as arc %}
-    Version {{ page.version }} by {{ arc.user }} | 
-    Created: {{ page.created|date:"D, j M y P" }} | 
-    Updated: {{ page.updated|date:"D, j M y P" }}
-    {% endwith %}
-    </small></em>
-</p>
+    <div class="markdown">
+        {{ page.safe_html|default:"This page is currently blank." }}
+    </div>
+    <hr>
+    {% if is_auth %}
+    <p class="text-center text-muted">
+        <em><small>{% with page.latest_archive as arc %}
+        Version {{ page.version }} by {{ arc.user }} | 
+        Created: {{ page.created|date:"D, j M y P" }} | 
+        Updated: {{ page.updated|date:"D, j M y P" }}
+        {% endwith %}
+        </small></em>
+    </p>
+    {% endif %}
+    
+    {% if mdpage.show_tags and page.tags.count %}
+    <div class="well well-sm">
+        Topics: {% for tag in page.tags.all %}
+        <a class="badge" href="{{ page.type.get_absolute_url }}?tag={{ tag }}">{{ tag }}</a>{% endfor %}
+    </div>
+    {% endif %}
+    
 {% endif %}
 {% endwith %}
 {% endblock %}

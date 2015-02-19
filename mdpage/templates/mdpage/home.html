@@ -7,6 +7,7 @@
         {{ count }} total page(s) <span class="sep">|</span>
         <a href="{{ mdpt_url }}?recent">Recent Activity</a> 
     </p>
+    {% if listing|length > 8 %}
     <style>
         .page-index {
             -webkit-columns: 3 150px;
@@ -20,32 +21,42 @@
                     column-rule: 1px dotted #ddd;
             
         }
+        .page-index .page-group{
+            -webkit-column-break-inside: avoid;
+                      page-break-inside: avoid;
+                           break-inside: avoid;
+        }
     </style>
-    <section class="page-index">
-        {% for letter,pages in listing %}
-        <div class="page-group">
-            <p><span class="label label-primary">{{ letter.upper }}</span></p>
-            <ul class="list-unstyled"> {% for page in pages %}
-                <li>
-                    <a href="{{ page.get_absolute_url }}">{{ page.title }}</a>
-                </li> {% endfor %}
-            </ul>
-        </div>
-        {% empty %}
-        <em>Sorry, no pages created yet.</em>
-        {% endfor %}
-    </section>
-
-    {% with mdp_type.tags as tags  %}
-    {% if tags %}
-    <div id="tags" class="span-5 last">
-        <h2>Topics</h2>
-        <ul class="list-unstyled">{% for tag in tags %}
-            <li><a href="{{ mdpt_url }}?tag={{ tag.name }}">{{ tag.name }}</a>&nbsp({{ tag.counter }})</li>
-        {% endfor %}
-        </ul>
-    </div>
     {% endif %}
-    {% endwith %}
+    <div class="row">
+        <div class="col-md-10">
+            <section class="page-index">
+                {% for letter,pages in listing %}
+                <div class="page-group">
+                    <p><span class="label label-primary">{{ letter.upper }}</span></p>
+                    <ul class="list-unstyled"> {% for page in pages %}
+                        <li>
+                            <a href="{{ page.get_absolute_url }}">{{ page.title }}</a>
+                        </li> {% endfor %}
+                    </ul>
+                </div>
+                {% empty %}
+                <em>Sorry, no pages created yet.</em>
+                {% endfor %}
+            </section>
+        </div>
+        <div class="col-md-2">
+            <div class="panel panel-default">
+                <div class="panel-heading">Topics</div>
+                <div class="panel-body">
+                    <ul id="tags" class="list-unstyled">{% for tag in mdp_type.tags %}
+                        <li>
+                            <a href="{{ mdpt_url }}?tag={{ tag.slug }}">{{ tag.name }} <span class="badge">{{ tag.counter }}</span></a>
+                        </li>
+                    {% empty %}No topics available{% endfor %}</ul>
+                </div>
+            </div>
+        </div>
+    </div>
     {% endwith %}
 {% endblock %}
