@@ -1,20 +1,24 @@
 from django.conf.urls import *
-from django.contrib.auth.decorators import user_passes_test
 from mdpage import views
+from mdpage import utils
 
+read_page_patterns = (
+    (r'^$', views.mdpage_view, 'mdpage-view'),
+)
 
-superuser_required = user_passes_test(lambda u: u.is_authenticated() and u.is_active and u.is_superuser)
-staff_required = user_passes_test(lambda u: u.is_authenticated() and u.is_active and u.is_staff)
+write_page_patterns = (
+    (r'^edit/$',   views.mdpage_edit,   'mdpage-edit'),
+    (r'^attach/$', views.mdpage_attach, 'mdpage-attach'),
+)
 
-
-default_page_patterns = (
-    (r'^$',         views.mdpage_view,     'mdpage-view'),
-    (r'^edit/$',    views.mdpage_edit,     'mdpage-edit'),
-    (r'^text/$',    views.mdpage_text,     'mdpage-text'),
-    (r'^attach/$',  views.mdpage_attach,   'mdpage-attach'),
-    (r'^history/$', views.mdpage_history,  'mdpage-history'),
+extra_page_patterns = (
+    (r'^text/$',    views.mdpage_text,    'mdpage-text'),
+    (r'^history/$', views.mdpage_history, 'mdpage-history'),
     (r'^history/(?P<version>\d+)/$', views.mdpage_version,  'mdpage-version'),
 )
+
+all_page_patterns = read_page_patterns + write_page_patterns + extra_page_patterns
+
 
 #-------------------------------------------------------------------------------
 def make_url(decorator, regex, func, name):
@@ -22,13 +26,8 @@ def make_url(decorator, regex, func, name):
 
 
 #-------------------------------------------------------------------------------
-def make_urls(decorator, items):
-    return 
-
-
-#-------------------------------------------------------------------------------
 def make_urlpatterns(decorator=None, page_patterns=None):
-    page_patterns = page_patterns or default_page_patterns
+    page_patterns = page_patterns or all_page_patterns
     inc = [make_url(decorator, *item) for item in page_patterns]
     return patterns('',
         make_url(decorator, r'^$', views.mdpage_listing, 'mdpage-listing'),
@@ -38,12 +37,17 @@ def make_urlpatterns(decorator=None, page_patterns=None):
 
 #-------------------------------------------------------------------------------
 def superuser_urlpatterns(page_patterns=None):
-    return make_urlpatterns(superuser_required, page_patterns)
+    return make_urlpatterns(utils.superuser_required, page_patterns)
 
 
 #-------------------------------------------------------------------------------
 def staff_urlpatterns(page_patterns=None):
-    return make_urlpatterns(staff_required, page_patterns)
+    return make_urlpatterns(utils.staff_required, page_patterns)
+
+
+#-------------------------------------------------------------------------------
+def authenicated_urlpatterns(page_patterns=None):
+    return make_urlpatterns(utils.login_required, page_patterns)
 
 
 urlpatterns = make_urlpatterns()

@@ -33,7 +33,7 @@ class MarkdownPageForm(forms.ModelForm):
             instance = super(MarkdownPageForm, self).save(commit=False)
             instance.save(user=request.user)
             self.save_m2m()
-            messages.info(request, 'Page saved')
+            messages.success(request, 'Page saved')
 
         self.instance.unlock(request)
         return self.instance

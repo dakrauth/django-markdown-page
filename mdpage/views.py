@@ -15,7 +15,7 @@ def get_page(prefix, slug, raise_404=True):
         page = MarkdownPage.published.get(type=mdp_type, slug=slug)
     except MarkdownPage.DoesNotExist:
         if raise_404:
-            raise
+            raise http.Http404
         
         page = None
         
