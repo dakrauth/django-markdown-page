@@ -1,7 +1,7 @@
 {% extends "mdpage/base.html" %}
-{% block title %}{{ title }}{% endblock %}
-{% block page_title %}{{ title }}{% endblock %}
+{% block mdpage_title %}{{ title }}{% endblock mdpage_title%}
 {% block mdpage_content %}
+    <h1>{{ title }}</h1>
     {% with mdp_type.get_absolute_url as mdpt_url %}
     <p class="well well-sm">
         {{ count }} page{{ count|pluralize }} <span class="sep">|</span>
@@ -38,4 +38,4 @@
         </div>
     </div>
     {% endwith %}
-{% endblock %}
+{% endblock mdpage_content %}

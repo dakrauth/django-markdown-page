@@ -1,6 +1,6 @@
 {% extends "mdpage/base.html" %}
-{% block title %}{{ page }} Locked!{% endblock %}
-{% block page_title %}{{ page }} Locked!{% endblock %}
+{% block mdpage_title %}{{ page }} Locked!{% endblock %}
 {% block mdpage_content %}
+    <h1>{{ page }} Locked!</h1>
     <p><strong>This page is currently locked until {{ page.locked }}</strong></p>
 {% endblock mdpage_content %}
