@@ -4,33 +4,12 @@
 {% block mdpage_content %}
     {% with mdp_type.get_absolute_url as mdpt_url %}
     <p class="well well-sm">
-        {{ count }} total page(s) <span class="sep">|</span>
+        {{ count }} page{{ count|pluralize }} <span class="sep">|</span>
         <a href="{{ mdpt_url }}?recent">Recent Activity</a> 
     </p>
-    {% if listing|length > 8 %}
-    <style>
-        .page-index {
-            -webkit-columns: 3 150px;
-               -moz-columns: 3 150px;
-                    columns: 3 150px;
-            -webkit-column-gap: 2em;
-               -moz-column-gap: 2em;
-                    column-gap: 2em;
-            -webkit-column-rule: 1px dotted #ddd;
-               -moz-column-rule: 1px dotted #ddd;
-                    column-rule: 1px dotted #ddd;
-            
-        }
-        .page-index .page-group{
-            -webkit-column-break-inside: avoid;
-                      page-break-inside: avoid;
-                           break-inside: avoid;
-        }
-    </style>
-    {% endif %}
     <div class="row">
         <div class="col-md-10">
-            <section class="page-index">
+            <section class="page-index{% if listing|length > 8 %} columnar{% endif %}">
                 {% for letter,pages in listing %}
                 <div class="page-group">
                     <p><span class="label label-primary">{{ letter.upper }}</span></p>

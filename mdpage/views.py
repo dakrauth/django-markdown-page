@@ -24,9 +24,13 @@ def get_page(prefix, slug, raise_404=True):
 
 
 #-------------------------------------------------------------------------------
-def mdpage_render(request, tmpl, mdp_type, **kws):
+def mdpage_render(request, tmpl_part, mdp_type, **kws):
     kws.update(mdp_type=mdp_type)
-    return render(request, tmpl, kws)
+    template_list = [
+        'mdpage/types/{}/{}'.format(mdp_type.prefix or '__root__', tmpl_part),
+        'mdpage/{}'.format(tmpl_part)
+    ]
+    return render(request, template_list, kws)
 
 
 #-------------------------------------------------------------------------------
@@ -52,7 +56,7 @@ def _mdpage_list_tags(request, mdp_type, **opts):
     else:
         count, listing = 0, []
 
-    return mdpage_render(request, 'mdpage/home.html', mdp_type,
+    return mdpage_render(request, 'home.html', mdp_type,
         listing=listing,
         count=count,
         title='Pages for topic "{}"'.format(tag)
@@ -73,11 +77,11 @@ def mdpage_edit(request, prefix, slug):
     else:
         if page.lock(request):
             page.unlock(request)
-            # return mdpage_render(request, 'mdpage/locked.html', mdp_type, data)
+            # return mdpage_render(request, 'locked.html', mdp_type, data)
             
         form = forms.MarkdownPageForm(instance=page)
 
-    return mdpage_render(request, 'mdpage/edit.html', mdp_type, page=page, form=form)
+    return mdpage_render(request, 'edit.html', mdp_type, page=page, form=form)
 
 
 #-------------------------------------------------------------------------------
@@ -91,7 +95,7 @@ def _mdpage_new_page(request, mdp_type, title):
     else:
         form = forms.MarkdownPageForm(instance=page)
     
-    return mdpage_render(request, 'mdpage/edit.html', mdp_type, page=page, form=form)
+    return mdpage_render(request, 'edit.html', mdp_type, page=page, form=form)
 
 
 #-------------------------------------------------------------------------------
@@ -107,7 +111,7 @@ def _mdpage_get_or_create_page(request, mdp_type, **opts):
 #-------------------------------------------------------------------------------
 def _mdpage_page_listing(request, mdp_type, **opts):
     count, listing = _listing(mdp_type.markdownpage_set.order_by('title'))
-    return mdpage_render(request, 'mdpage/home.html', mdp_type,
+    return mdpage_render(request, 'home.html', mdp_type,
         listing=listing,
         count=count,
         title='Page Listing'
@@ -116,16 +120,18 @@ def _mdpage_page_listing(request, mdp_type, **opts):
 
 #-------------------------------------------------------------------------------
 def _mdpage_search(request, mdp_type, **opts):
-    words = request.GET['search'].split()
-    return mdpage_render(request, 'mdpage/search.html', mdp_type,
+    search = request.GET.get('search')
+    words = search.split()
+    return mdpage_render(request, 'search.html', mdp_type,
         pages=mdp_type.markdownpage_set.search(words),
-        words=words
+        words=words,
+        search=search
     )
 
 
 #-------------------------------------------------------------------------------
 def _mdpage_recent_updates(request, mdp_type, **opts):
-    return mdpage_render(request, 'mdpage/recent.html', mdp_type,
+    return mdpage_render(request, 'recent.html', mdp_type,
         pages=mdp_type.markdownpage_set.order_by('-updated')
     )
 
@@ -151,7 +157,7 @@ def mdpage_listing(request, prefix):
     if not page:
         return _mdpage_page_listing(request, mdp_type)
 
-    return mdpage_render(request, 'mdpage/page.html', mdp_type, page=page)
+    return mdpage_render(request, 'page.html', mdp_type, page=page)
 
 
 #-------------------------------------------------------------------------------
@@ -159,14 +165,14 @@ def mdpage_history(request, prefix, slug, version=None):
     mdp_type, page = get_page(prefix, slug)
     archive = page.markdownpagearchive_set.get(version=version) if version is not None else None
     
-    return mdpage_render(request, 'mdpage/history.html', mdp_type, page=page, archive=archive)
+    return mdpage_render(request, 'history.html', mdp_type, page=page, archive=archive)
 
 
 #-------------------------------------------------------------------------------
 def mdpage_view(request, prefix, slug):
     mdp_type, page = get_page(prefix, slug, False)
     if page:
-        return mdpage_render(request, 'mdpage/page.html', mdp_type, page=page)
+        return mdpage_render(request, 'page.html', mdp_type, page=page)
 
     if not mdp_type or not request.user.is_authenticated():
         raise http.Http404('Page not found')
@@ -191,5 +197,5 @@ def mdpage_attach(request, prefix, slug):
     else:
         form =  forms.ContentForm()
 
-    return mdpage_render(request, 'mdpage/attach.html', mdp_type, page=page, form=form)
+    return mdpage_render(request, 'attach.html', mdp_type, page=page, form=form)
 

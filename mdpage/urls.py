@@ -17,7 +17,11 @@ extra_page_patterns = (
     (r'^history/(?P<version>\d+)/$', views.mdpage_history,  'mdpage-history'),
 )
 
-all_page_patterns = read_page_patterns + write_page_patterns + extra_page_patterns
+decorator_mapping = {
+    'superuser': superuser_required,
+    'staff':     staff_required,
+    'login':     login_required,
+}
 
 
 #-------------------------------------------------------------------------------
@@ -30,13 +34,20 @@ def make_urlpatterns(read, write=None, extras=None):
     inc = []
     write = read if write is None else write
     extras = read if extras is None else extras
-    for deco, patts in (
+    
+    for decorator, patts in (
         (read,   read_page_patterns),
         (extras, extra_page_patterns),
         (write,  write_page_patterns),
     ):
-        if deco:
-            inc.extend([make_url(deco if callable(deco) else None, *item) for item in patts])
+        if decorator:
+            if decorator in decorator_mapping:
+                decorator = decorator_mapping[decorator]
+                
+            inc.extend([
+                make_url(decorator if callable(decorator) else None, *item)
+                for item in patts
+            ])
     
     return patterns('',
         make_url(read if callable(read) else None, r'^$', views.mdpage_listing, 'mdpage-listing'),
@@ -44,10 +55,5 @@ def make_urlpatterns(read, write=None, extras=None):
     )
 
 
-#-------------------------------------------------------------------------------
-def default_urlpatterns():
-    return make_urlpatterns(read=True, write=login_required, extras=login_required)
-
-
-urlpatterns = default_urlpatterns()
+urlpatterns = make_urlpatterns(read=True, write='login', extras='login')
 
