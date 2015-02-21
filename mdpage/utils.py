@@ -5,6 +5,7 @@ import unicodedata
 from django.conf import settings
 from markdown2 import Markdown
 from django.contrib.auth.decorators import user_passes_test, login_required
+from .settings import get_mdpage_setting, mdpage_settings
 
 superuser_required = user_passes_test(lambda u: u.is_authenticated() and u.is_active and u.is_superuser)
 staff_required = user_passes_test(lambda u: u.is_authenticated() and u.is_active and u.is_staff)
@@ -19,49 +20,22 @@ def slugify(value):
 
 
 #===============================================================================
-class MDPageConf(object):
-
-    link_patterns       = []
-    mdpage_re             = r'\[\[([^]]+)\]\]'
-    title_splitter      = r'[^\w_-]+'
-    table_classes       = 'table table-striped table-bordered'
-    mdpage_link_classes   = ''
-    home_title          = 'home'
-    extras = {
-        'footnotes': True,
-        'demote-headers': +1,
-        'wiki-tables': True,
-        'tables': True,
-        'fenced-code-blocks': {}
-    }
-    context_conf = {
-        'show_history_link': False,
-        'show_text_link': False,
-        'show_tags': True
-    }
-
-    #---------------------------------------------------------------------------
-    def __init__(self, kws):
-        self.__dict__.update(kws)
-        self.mdpage_re = re.compile(self.mdpage_re)
-        self.title_splitter = re.compile(self.title_splitter).split
-
-
-mdpage_conf = MDPageConf(getattr(settings, 'MARKDOWN_PAGE', {}))
-
-
-#===============================================================================
 class MDPageMarkdown(Markdown):
     
     #---------------------------------------------------------------------------
     def __init__(self, make_mdpage_link, *args, **kws):
         super(MDPageMarkdown, self).__init__(*args, **kws)
         self.make_mdpage_link = make_mdpage_link
+        self.mdpage_re = None
+        if self.make_mdpage_link:
+            regex = get_mdpage_setting('mdpage_re')
+            if regex:
+                self.mdpage_re = re.compile(regex)
         
     #---------------------------------------------------------------------------
     def mdpage_pattern_repl(self, match):
         title = match.group(1).strip()
-        wcls = mdpage_conf.mdpage_link_classes
+        wcls = get_mdpage_setting('link_classes')
         return '<a {}href="{}">{}</a>'.format(
             'class="{}" '.format(wcls) if wcls else '',
             self.make_mdpage_link(title),
@@ -70,22 +44,27 @@ class MDPageMarkdown(Markdown):
 
     #---------------------------------------------------------------------------
     def _run_span_gamut(self, text):
-        if self.make_mdpage_link:
-            text = mdpage_conf.mdpage_re.sub(self.mdpage_pattern_repl, text)
+        if self.make_mdpage_link and self.mdpage_re:
+            text = self.mdpage_re.sub(self.mdpage_pattern_repl, text)
         
         return super(MDPageMarkdown, self)._run_span_gamut(text)
 
 
 #-------------------------------------------------------------------------------
-def markdown(text, make_mdpage_link=None):
-    md = MDPageMarkdown(
-        make_mdpage_link,
-        link_patterns=mdpage_conf.link_patterns,
-        extras=mdpage_conf.extras
-    )
+def mdpage_markdown(text, make_mdpage_link=None, conf=None):
+    conf = conf or mdpage_conf
+    kwargs = {}
+    if conf['extras']:
+        kwargs['extras'] = conf['extras']
+    
+    if conf['link_patterns']:
+        kwargs['link_patterns'] = conf['link_patterns']
+        
+    md = MDPageMarkdown(make_mdpage_link, **kwargs)
     html = unicode(md.convert(text))
-    if mdpage_conf.table_classes:
-        html = html.replace('<table>', '<table class="{}">'.format(mdpage_conf.table_classes))
+    table_classes = conf.get('table_classes')
+    if table_classes:
+        html = html.replace('<table>', '<table class="{}">'.format(table_classes))
 
     return html
 

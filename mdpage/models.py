@@ -15,8 +15,6 @@ from taggit.managers import TaggableManager
 from taggit.models import Tag, TaggedItem
 from mdpage import utils
 
-mdpage_conf = utils.mdpage_conf
-
 
 #===============================================================================
 class PublishedManager(models.Manager):
@@ -206,7 +204,7 @@ class MarkdownPage(MarkdownPageBase):
         if not self.slug:
             self.slug = utils.slugify(self.title)
             
-        self.html = utils.markdown(self.text, self.make_mdpage_link)
+        self.html = utils.mdpage_markdown(self.text, self.make_mdpage_link)
         self.version = (self.version + 1 if self.version else 1)
         self.locked = None
         user = kws.pop('user', None)
@@ -263,7 +261,7 @@ class MarkdownPageArchive(models.Model):
     #---------------------------------------------------------------------------
     @property
     def safe_html(self):
-        return SafeUnicode(utils.markdown(self.text))
+        return SafeUnicode(utils.mdpage_markdown(self.text))
 
 
 #-------------------------------------------------------------------------------

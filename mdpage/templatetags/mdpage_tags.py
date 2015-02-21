@@ -13,14 +13,14 @@ class MarkdownNode(template.Node):
         
     #---------------------------------------------------------------------------
     def render(self, context):
-        html = utils.markdown(self.nodelist.render(context))
+        html = utils.mdpage_markdown(self.nodelist.render(context))
         return html
 
 
 #-------------------------------------------------------------------------------
 @register.filter(name='markdown')
 def markdown(text):
-    return mark_safe(utils.markdown(text))
+    return mark_safe(utils.mdpage_markdown(text))
 
 
 #-------------------------------------------------------------------------------

@@ -5,8 +5,10 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
 from taggit.utils import parse_tags
-from mdpage.models import MarkdownPage, MarkdownPageType, mdpage_conf
-from mdpage import forms
+
+from .settings import get_mdpage_setting
+from .models import MarkdownPage, MarkdownPageType
+from .forms import MarkdownPageForm, ContentForm
 
 
 #-------------------------------------------------------------------------------
@@ -71,7 +73,7 @@ def mdpage_edit(request, prefix, slug):
             page.unlock(request)
             return page_redirect(page)
             
-        form =  forms.MarkdownPageForm(request.POST, instance=page)
+        form =  MarkdownPageForm(request.POST, instance=page)
         if form.is_valid():
             return page_redirect(form.save(request))
     else:
@@ -79,7 +81,7 @@ def mdpage_edit(request, prefix, slug):
             page.unlock(request)
             # return mdpage_render(request, 'locked.html', mdp_type, data)
             
-        form = forms.MarkdownPageForm(instance=page)
+        form = MarkdownPageForm(instance=page)
 
     return mdpage_render(request, 'edit.html', mdp_type, page=page, form=form)
 
@@ -89,11 +91,11 @@ def mdpage_edit(request, prefix, slug):
 def _mdpage_new_page(request, mdp_type, title):
     page = MarkdownPage(type=mdp_type, title=title)
     if request.POST:
-        form = forms.MarkdownPageForm(request.POST, instance=page)
+        form = MarkdownPageForm(request.POST, instance=page)
         if form.is_valid():
             return page_redirect(form.save(request))
     else:
-        form = forms.MarkdownPageForm(instance=page)
+        form = MarkdownPageForm(instance=page)
     
     return mdpage_render(request, 'edit.html', mdp_type, page=page, form=form)
 
@@ -153,7 +155,7 @@ def mdpage_listing(request, prefix):
         if key in request.GET:
             return func(request, **{'mdp_type': mdp_type, key : request.GET.get(key)})
 
-    mdp_type, page = get_page(prefix, mdpage_conf.home_title, False)
+    mdp_type, page = get_page(prefix, get_mdpage_setting('home_title'), False)
     if not page:
         return _mdpage_page_listing(request, mdp_type)
 
@@ -190,12 +192,12 @@ def mdpage_text(request, prefix, slug):
 def mdpage_attach(request, prefix, slug):
     mdp_type, page = get_page(prefix, slug)
     if request.method == 'POST':
-        form =  forms.ContentForm(request.POST, request.FILES)
+        form =  ContentForm(request.POST, request.FILES)
         if form.is_valid():
             form.save(page)
             return page_redirect(page)
     else:
-        form =  forms.ContentForm()
+        form =  ContentForm()
 
     return mdpage_render(request, 'attach.html', mdp_type, page=page, form=form)
 

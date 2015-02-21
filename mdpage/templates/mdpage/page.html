@@ -26,7 +26,7 @@
         </p>
         {% endif %}
     
-        {% if mdpage.show_tags and page.tags.count %}
+        {% if mdpage.show_topics and page.tags.count %}
         <div class="well well-sm">
             Topics: {% for tag in page.tags.all %}
             <a class="badge" href="{{ page.type.get_absolute_url }}?tag={{ tag }}">{{ tag }}</a>{% endfor %}

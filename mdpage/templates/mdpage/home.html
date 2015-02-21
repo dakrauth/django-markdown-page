@@ -4,8 +4,8 @@
     <h1>{{ title }}</h1>
     {% with mdp_type.get_absolute_url as mdpt_url %}
     <p class="well well-sm">
-        {{ count }} page{{ count|pluralize }} <span class="sep">|</span>
-        <a href="{{ mdpt_url }}?recent">Recent Activity</a> 
+        {{ count }} page{{ count|pluralize }}
+        {% if mdpage.show_recent_activity_link %}| <a href="{{ mdpt_url }}?recent">Recent Activity</a>{% endif %}
     </p>
     <div class="row">
         <div class="col-md-10">
