@@ -29,7 +29,7 @@
         {% if mdpage.show_topics and page.tags.count %}
         <div class="well well-sm">
             Topics: {% for tag in page.tags.all %}
-            <a class="badge" href="{{ page.type.get_absolute_url }}?tag={{ tag }}">{{ tag }}</a>{% endfor %}
+            <a class="badge" href="{{ page.type.get_absolute_url }}?topic={{ tag }}">{{ tag }}</a>{% endfor %}
         </div>
         {% endif %}
     

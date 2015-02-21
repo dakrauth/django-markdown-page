@@ -129,7 +129,7 @@ HOME_OPTIONS = (
     ('search',   _mdpage_search),
     ('new',      _mdpage_get_or_create_page),
     ('recent',   _mdpage_recent_updates),
-    ('tag',      _mdpage_list_tags),
+    ('topic',    _mdpage_list_tags),
 )
 
 ################################################################################
@@ -138,13 +138,16 @@ HOME_OPTIONS = (
 #-------------------------------------------------------------------------------
 def mdpage_listing(request, prefix):
     mdp_type = get_object_or_404(MarkdownPageType.published, prefix=prefix)
+
     for key,func in HOME_OPTIONS:
         if key in request.GET:
             return func(request, **{'mdp_type': mdp_type, key : request.GET.get(key)})
 
-    mdp_type, page = get_page(prefix, get_mdpage_setting('home_title'), False)
-    if not page:
-        return _mdpage_page_listing(request, mdp_type)
+    home_slug = get_mdpage_setting('home_slug')
+    if home_slug is not None:
+        mdp_type, page = get_page(prefix, get_mdpage_setting('home_slug'), False)
+        if not page:
+            return _mdpage_page_listing(request, mdp_type)
 
     return mdpage_render(request, 'page.html', mdp_type, page=page)
 
@@ -152,9 +155,10 @@ def mdpage_listing(request, prefix):
 #-------------------------------------------------------------------------------
 def mdpage_history(request, prefix, slug, version=None):
     mdp_type, page = get_page(prefix, slug)
-    archive = page.markdownpagearchive_set.get(version=version) if version is not None else None
-    
-    return mdpage_render(request, 'history.html', mdp_type, page=page, archive=archive)
+    return mdpage_render(request, 'history.html', mdp_type,
+        page=page,
+        archive=page.markdownpagearchive_set.get(version=version) if version is not None else None
+    )
 
 
 #-------------------------------------------------------------------------------
