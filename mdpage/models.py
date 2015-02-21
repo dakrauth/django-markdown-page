@@ -2,6 +2,7 @@ import re
 import os
 import operator
 import mimetypes
+from collections import defaultdict
 from datetime import datetime, timedelta
 
 from django.db import models
@@ -78,6 +79,16 @@ class MarkdownPageType(MarkdownPageBase):
     def tagged_by(self, tag):
         return self.markdownpage_set.filter(tags__name=tag)
 
+    #---------------------------------------------------------------------------
+    def listing(self, by_tag=None):
+        pages = self.tagged_by(tag) if by_tag else self.markdownpage_set.order_by('title')
+        count = len(pages)
+        listing = defaultdict(list)
+        for page in pages:
+            listing[page.title[0].upper()].append(page)
+
+        return count, sorted(listing.items())
+
 
 #===============================================================================
 class MarkdownPageManager(models.Manager):
@@ -93,8 +104,8 @@ class MarkdownPageManager(models.Manager):
             return None
     
     #---------------------------------------------------------------------------
-    def search(self, words):
-        words = words or []
+    def search(self, text):
+        words = text.split()
         criteria = []
         for word in words:
             criteria.extend([

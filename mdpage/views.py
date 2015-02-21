@@ -1,15 +1,13 @@
 from functools import wraps
-from collections import defaultdict
 from django import http
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
 from taggit.utils import parse_tags
 
-from .settings import get_mdpage_setting
+from .settings import get_mdpage_setting, mdpage_settings
 from .models import MarkdownPage, MarkdownPageType
 from .forms import MarkdownPageForm, ContentForm
-
 
 #-------------------------------------------------------------------------------
 def get_page(prefix, slug, raise_404=True):
@@ -27,11 +25,16 @@ def get_page(prefix, slug, raise_404=True):
 
 #-------------------------------------------------------------------------------
 def mdpage_render(request, tmpl_part, mdp_type, **kws):
-    kws.update(mdp_type=mdp_type)
+    kws.update(
+        mdp_type=mdp_type,
+        mdpage={k: v for k,v in mdpage_settings.items() if k.startswith('show_')},
+    )
+
     template_list = [
         'mdpage/types/{}/{}'.format(mdp_type.prefix or '__root__', tmpl_part),
         'mdpage/{}'.format(tmpl_part)
     ]
+
     return render(request, template_list, kws)
 
 
@@ -41,23 +44,9 @@ def page_redirect(page):
 
 
 #-------------------------------------------------------------------------------
-def _listing(pages):
-    count = len(pages)
-    listing = defaultdict(list)
-    for page in pages:
-        listing[page.title[0].upper()].append(page)
-    
-    return count, sorted(listing.items())
-
-
-#-------------------------------------------------------------------------------
 def _mdpage_list_tags(request, mdp_type, **opts):
     tag = opts.get('tag')
-    if tag:
-        count, listing = _listing(mdp_type.tagged_by(tag))
-    else:
-        count, listing = 0, []
-
+    count, listing = mdp_type.listing(tag) if tag else 0, []
     return mdpage_render(request, 'home.html', mdp_type,
         listing=listing,
         count=count,
@@ -112,7 +101,7 @@ def _mdpage_get_or_create_page(request, mdp_type, **opts):
 
 #-------------------------------------------------------------------------------
 def _mdpage_page_listing(request, mdp_type, **opts):
-    count, listing = _listing(mdp_type.markdownpage_set.order_by('title'))
+    count, listing = mdp_type.listing()
     return mdpage_render(request, 'home.html', mdp_type,
         listing=listing,
         count=count,
@@ -123,10 +112,8 @@ def _mdpage_page_listing(request, mdp_type, **opts):
 #-------------------------------------------------------------------------------
 def _mdpage_search(request, mdp_type, **opts):
     search = request.GET.get('search')
-    words = search.split()
     return mdpage_render(request, 'search.html', mdp_type,
-        pages=mdp_type.markdownpage_set.search(words),
-        words=words,
+        pages=mdp_type.markdownpage_set.search(search),
         search=search
     )
 

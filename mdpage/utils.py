@@ -52,7 +52,7 @@ class MDPageMarkdown(Markdown):
 
 #-------------------------------------------------------------------------------
 def mdpage_markdown(text, make_mdpage_link=None, conf=None):
-    conf = conf or mdpage_conf
+    conf = conf or mdpage_settings
     kwargs = {}
     if conf['extras']:
         kwargs['extras'] = conf['extras']

@@ -1,11 +1,11 @@
 {% extends "mdpage/base.html" %}
 {% block mdpage_title %}{% if page %}{{ page.title }}{% else %}{{ context.description }}{% endif %} {% endblock %}
 {% block mdpage_content %}
-    <h1>{% if page %}{{ page.title }}{% else %}{{ context.description }}{% endif %} </h1>
+    <h1>{% if page %}{{ page.title }}{% else %}{{ context.description }}{% endif %}</h1>
     {% with user.is_authenticated as is_auth  %}
     {% if page %}
-        <div>
-            <span class="label label-default text-uppercase">{{ page.updated|date }}</span>
+        <div class="mdpage-info">
+            <span class="label label-primary text-uppercase">{{ page.updated|date }}</span>
             {% if is_auth or mdpage.show_history_link %}<a href="{{ page.history_url }}">History</a> &middot;{% endif %}
             {% if is_auth or mdpage.show_text_link %}<a href="{{ page.text_url }}">Text</a> &middot;{% endif %}
             {% if is_auth %}<a href="{{ page.edit_url }}">Edit</a>{% endif %}

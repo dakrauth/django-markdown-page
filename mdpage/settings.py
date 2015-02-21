@@ -6,7 +6,7 @@ DEFAULT_SETTINGS = {
     'mdpage_re':  r'\[\[([^]]+)\]\]',
     'table_classes':  'table table-striped table-bordered',
     'link_classes':  '',
-    'home_title':  'home',
+    'home_slug':  'home',
 
     'extras': {
         'footnotes': True,
