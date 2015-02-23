@@ -10,6 +10,13 @@ from .settings import get_mdpage_setting, mdpage_settings
 superuser_required = user_passes_test(lambda u: u.is_authenticated() and u.is_active and u.is_superuser)
 staff_required = user_passes_test(lambda u: u.is_authenticated() and u.is_active and u.is_staff)
 
+#-------------------------------------------------------------------------------
+def get_mdp_type_template_list(mdp_type, tmpl_part):
+    return [
+        'mdpage/types/{}/{}'.format(mdp_type.prefix or '__root__', tmpl_part),
+        'mdpage/{}'.format(tmpl_part)
+    ]
+
 
 #-------------------------------------------------------------------------------
 def slugify(value):

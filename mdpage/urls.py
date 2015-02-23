@@ -2,6 +2,11 @@ from django.conf.urls import *
 from mdpage import views
 from mdpage.utils import superuser_required, staff_required, login_required
 
+item_url_formats = {
+    'simple': r'^(?P<slug>[^/]+)/',
+    'date': r'^\d{4}/\d\d?+/\d\d?/(?P<slug>[^/]+)/',
+}
+
 read_page_patterns = (
     (r'^$', views.mdpage_view, 'mdpage-view'),
 )
@@ -30,7 +35,7 @@ def make_url(decorator, regex, func, name):
 
 
 #-------------------------------------------------------------------------------
-def make_urlpatterns(read, write=None, extras=None):
+def make_urlpatterns(read, write=None, extras=None, url_format='simple'):
     inc = []
     write = read if write is None else write
     extras = read if extras is None else extras
@@ -50,8 +55,8 @@ def make_urlpatterns(read, write=None, extras=None):
             ])
     
     return patterns('',
-        make_url(read if callable(read) else None, r'^$', views.mdpage_home, 'mdpage-listing'),
-        url(r'^(?P<slug>[^/]+)/', include(inc)),
+        make_url(read if callable(read) else None, r'^$', views.mdpage_home, 'mdpage-home'),
+        url(item_url_formats[url_format], include(inc)),
     )
 
 

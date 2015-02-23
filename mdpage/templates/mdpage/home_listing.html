@@ -1,0 +1,15 @@
+<ul class="page-list list-group">
+    {% for page in pages %}
+    <li class="list-group-item">
+        <h2><a href="{{ page.get_absolute_url }}">{{ page.title }}</a></h2>
+        <p>Posted
+            <span class="date">{{ page.available|date }}</span>
+            {% if page.tags.count %} in {% for tag in page.tags.all %}{% if forloop.counter0 %},{% endif %}
+            <a href="{{ page.mdp_type.get_absolute_url }}?topic={{ tag.slug }}">{{ tag.name }}</a>
+            {% endfor %}{% endif %}
+        </p>
+    </li>
+    {% empty %}
+    <li><em>Sorry, no pages created yet.</em></li>
+    {% endfor %}
+</ul>

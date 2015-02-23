@@ -1,46 +1,25 @@
 {% extends "mdpage/base.html" %}
 {% block mdpage_title %}{{ title }}{% endblock mdpage_title%}
 {% block mdpage_content %}
-    {% load pagination_tags %}
+    {% load pagination_tags mdpage_tags %}
     {% autopaginate pages 100 %}
     <h1>{{ title }}</h1>
-    {% with mdp_type.get_absolute_url as mdpt_url %}
     {% if mdpage.show_recent_activity_link %}
-    <p>
-        <a href="{{ mdpt_url }}?recent">Recent Activity</a>
-    </p>
+    <p><a href="{{ mdp_type.get_absolute_url }}?recent">Recent Activity</a></p>
     {% endif %}
+    {% select_template mdp_type "home_listing.html" as tmpl %}
+    {% if mdpage.show_topics %}
     <div class="row">
         <div class="col-md-10">
-            <section class="page-index{% if listing|length > 8 %} columnar{% endif %}">
-                {% regroup pages by title.0.upper as letters %}
-                {% for letter in letters %}
-                <div class="page-group">
-                    <p><span class="label label-primary">{{ letter.grouper }}</span></p>
-                    <ul class="list-unstyled"> {% for page in letter.list %}
-                        <li>
-                            <a href="{{ page.get_absolute_url }}">{{ page.title }}</a>
-                        </li> {% endfor %}
-                    </ul>
-                </div>
-                {% empty %}
-                <em>Sorry, no pages created yet.</em>
-                {% endfor %}
-            </section>
+            {% include tmpl %}
         </div>
         <div class="col-md-2">
-            <div class="panel panel-default">
-                <div class="panel-heading">Topics</div>
-                <div class="panel-body">
-                    <ul id="tags" class="list-unstyled">{% for tag in mdp_type.tags %}
-                        <li>
-                            <a href="{{ mdpt_url }}?topic={{ tag.slug }}">{{ tag.name }} <span class="badge">{{ tag.counter }}</span></a>
-                        </li>
-                    {% empty %}No topics available{% endfor %}</ul>
-                </div>
-            </div>
+            {% select_template mdp_type "topics.html" as tmpl %}
+            {% include tmpl %}
         </div>
     </div>
+    {% else %}
+    {% include tmpl %}
+    {% endif %}
     {% paginate %}
-    {% endwith %}
 {% endblock mdpage_content %}

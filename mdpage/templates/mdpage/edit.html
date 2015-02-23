@@ -13,8 +13,9 @@
     {% load mdpage_tags %}
     <hr>
     <div class="markdown">
+        {% select_template mdp_type "cheatsheet.text" as tmpl %}
         {% markdown %}
-        {% include "mdpage/cheatsheet.text" %}
+        {% include tmpl %}
         {% endmarkdown %}
     </div>
     {% endblock mdpage_cheatsheet %}

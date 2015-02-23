@@ -2,19 +2,18 @@ import re
 import os
 import operator
 import mimetypes
-from collections import defaultdict
 from datetime import datetime, timedelta
 
 from django.db import models
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from django.utils.safestring import SafeUnicode
-from django.contrib.auth.models import User
 
 from choice_enum import ChoiceEnumeration
 from taggit.managers import TaggableManager
 from taggit.models import Tag, TaggedItem
-from mdpage import utils
+
+from .utils import slugify, mdpage_markdown
+from .settings import get_mdpage_setting, mdpage_settings
 
 
 #===============================================================================
@@ -52,6 +51,11 @@ class MarkdownPageBase(models.Model):
     class Meta:
         abstract = True
 
+    #---------------------------------------------------------------------------
+    @property
+    def available(self):
+        return self.pub_date or self.updated
+
 
 #===============================================================================
 class MarkdownPageType(MarkdownPageBase):
@@ -64,7 +68,7 @@ class MarkdownPageType(MarkdownPageBase):
     
     #---------------------------------------------------------------------------
     def get_absolute_url(self):
-        return reverse('mdpage-listing', kwargs={'prefix': self.prefix})
+        return reverse('mdpage-home', kwargs={'prefix': self.prefix})
 
     #---------------------------------------------------------------------------
     def tags(self):
@@ -74,10 +78,19 @@ class MarkdownPageType(MarkdownPageBase):
                       .annotate(counter=models.Count('name'))
                       .values('name', 'slug', 'counter')
         )
-        
+
     #---------------------------------------------------------------------------
     def tagged_by(self, tag):
         return self.markdownpage_set.filter(tags__name=tag)
+
+    #---------------------------------------------------------------------------
+    @property
+    def settings(self):
+        return mdpage_settings
+
+    #---------------------------------------------------------------------------
+    def get_setting(self, key, default=None):
+        return get_mdpage_setting(key, default)
 
 
 #===============================================================================
@@ -87,7 +100,7 @@ class MarkdownPageManager(models.Manager):
     
     #---------------------------------------------------------------------------
     def find(self, title):
-        slug = utils.slugify(title)
+        slug = slugify(title)
         try:
             return self.get(models.Q(title=title) | models.Q(slug=slug))
         except self.model.DoesNotExist:
@@ -192,15 +205,15 @@ class MarkdownPage(MarkdownPageBase):
 
     #---------------------------------------------------------------------------
     def make_mdpage_link(self, title):
-        slug = utils.slugify(title)
+        slug = slugify(title)
         return reverse('mdpage_page', kwargs={'prefix': self.type.prefix, 'slug': slug})
 
     #---------------------------------------------------------------------------
     def save(self, *args, **kws):
         if not self.slug:
-            self.slug = utils.slugify(self.title)
+            self.slug = slugify(self.title)
 
-        self.html = utils.mdpage_markdown(self.text, self.make_mdpage_link)
+        self.html = mdpage_markdown(self.text, self.make_mdpage_link)
         self.version = (self.version + 1 if self.version else 1)
         self.locked = None
         user = kws.pop('user', None)

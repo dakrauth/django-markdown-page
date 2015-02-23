@@ -1,14 +1,10 @@
-from functools import wraps
 from django import http
-from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
-from taggit.utils import parse_tags
 
-from .settings import get_mdpage_setting, mdpage_settings
 from .models import MarkdownPage, MarkdownPageType
 from .forms import MarkdownPageForm, ContentForm
-
+from .utils import get_mdp_type_template_list
 
 #-------------------------------------------------------------------------------
 @login_required
@@ -53,14 +49,10 @@ class ViewHandler(object):
         kws.update(
             mdp_type=self.mdp_type,
             page=self.page,
-            mdpage={k: v for k,v in mdpage_settings.items() if k.startswith('show_')},
+            mdpage={k: v for k,v in self.mdp_type.settings.items() if k.startswith('show_')},
         )
 
-        template_list = [
-            'mdpage/types/{}/{}'.format(self.mdp_type.prefix or '__root__', tmpl_part),
-            'mdpage/{}'.format(tmpl_part)
-        ]
-
+        template_list = get_mdp_type_template_list(self.mdp_type, tmpl_part)
         return render(self.request, template_list, kws)
 
     #---------------------------------------------------------------------------
@@ -81,12 +73,6 @@ class ViewHandler(object):
         return self.render('search.html',
             pages=self.mdp_type.markdownpage_set.search(search),
             search=search
-        )
-
-    #---------------------------------------------------------------------------
-    def home_recent(self, *args):
-        return self.render('recent.html',
-            pages=self.mdp_type.markdownpage_set.order_by('-updated')
         )
 
     #---------------------------------------------------------------------------
@@ -111,12 +97,12 @@ class ViewHandler(object):
 #-------------------------------------------------------------------------------
 def mdpage_home(request, prefix):
     vh = ViewHandler(request, prefix)
-    for key in ('search', 'new', 'recent', 'topic', 'listing'):
+    for key in ('search', 'new', 'topic', 'listing'):
         if key in request.GET:
             func = getattr(vh, 'home_{}'.format(key))
             return func(request.GET.get(key))
     
-    home_slug = get_mdpage_setting('home_slug')
+    home_slug = vh.mdp_type.get_setting('home_slug')
     if home_slug is not None:
         if vh.load_page(home_slug, raise_404=False):
             return vh.render('page.html')

@@ -1,4 +1,5 @@
 from django import template
+from django.template import loader
 from django.utils.safestring import mark_safe
 from mdpage import utils
 
@@ -29,5 +30,8 @@ def do_markdown(parser, token):
     nodelist = parser.parse(('endmarkdown',))
     parser.delete_first_token()
     return MarkdownNode(nodelist)
-    
 
+#-------------------------------------------------------------------------------
+@register.assignment_tag
+def select_template(mdp_type, tmpl_part):
+    return loader.select_template(utils.get_mdp_type_template_list(mdp_type, tmpl_part))
