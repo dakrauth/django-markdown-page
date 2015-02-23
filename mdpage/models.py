@@ -79,16 +79,6 @@ class MarkdownPageType(MarkdownPageBase):
     def tagged_by(self, tag):
         return self.markdownpage_set.filter(tags__name=tag)
 
-    #---------------------------------------------------------------------------
-    def listing(self, by_tag=None):
-        pages = self.tagged_by(tag) if by_tag else self.markdownpage_set.order_by('title')
-        count = len(pages)
-        listing = defaultdict(list)
-        for page in pages:
-            listing[page.title[0].upper()].append(page)
-
-        return count, sorted(listing.items())
-
 
 #===============================================================================
 class MarkdownPageManager(models.Manager):
@@ -199,22 +189,17 @@ class MarkdownPage(MarkdownPageBase):
             return False
             
         return True
-        
-    #---------------------------------------------------------------------------
-    @property
-    def safe_html(self):
-        return SafeUnicode(self.html)
-    
+
     #---------------------------------------------------------------------------
     def make_mdpage_link(self, title):
         slug = utils.slugify(title)
         return reverse('mdpage_page', kwargs={'prefix': self.type.prefix, 'slug': slug})
-        
+
     #---------------------------------------------------------------------------
     def save(self, *args, **kws):
         if not self.slug:
             self.slug = utils.slugify(self.title)
-            
+
         self.html = utils.mdpage_markdown(self.text, self.make_mdpage_link)
         self.version = (self.version + 1 if self.version else 1)
         self.locked = None
@@ -268,11 +253,6 @@ class MarkdownPageArchive(models.Model):
             'slug': self.page.slug,
             'version': self.version
         })
-        
-    #---------------------------------------------------------------------------
-    @property
-    def safe_html(self):
-        return SafeUnicode(utils.mdpage_markdown(self.text))
 
 
 #-------------------------------------------------------------------------------

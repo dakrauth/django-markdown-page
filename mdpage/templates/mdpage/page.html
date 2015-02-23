@@ -12,7 +12,7 @@
         </div>
 
         <div class="markdown">
-            {{ page.safe_html|default:"This page is currently blank." }}
+            {{ page.html|safe|default:"This page is currently blank." }}
         </div>
         <hr>
         {% if is_auth %}

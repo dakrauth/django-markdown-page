@@ -33,7 +33,7 @@ class MDPageMarkdown(Markdown):
                 self.mdpage_re = re.compile(regex)
         
     #---------------------------------------------------------------------------
-    def mdpage_pattern_repl(self, match):
+    def _mdpage_pattern_repl(self, match):
         title = match.group(1).strip()
         wcls = get_mdpage_setting('link_classes')
         return '<a {}href="{}">{}</a>'.format(
@@ -45,7 +45,7 @@ class MDPageMarkdown(Markdown):
     #---------------------------------------------------------------------------
     def _run_span_gamut(self, text):
         if self.make_mdpage_link and self.mdpage_re:
-            text = self.mdpage_re.sub(self.mdpage_pattern_repl, text)
+            text = self.mdpage_re.sub(self._mdpage_pattern_repl, text)
         
         return super(MDPageMarkdown, self)._run_span_gamut(text)
 
@@ -54,10 +54,10 @@ class MDPageMarkdown(Markdown):
 def mdpage_markdown(text, make_mdpage_link=None, conf=None):
     conf = conf or mdpage_settings
     kwargs = {}
-    if conf['extras']:
+    if 'extras' in conf:
         kwargs['extras'] = conf['extras']
     
-    if conf['link_patterns']:
+    if 'link_patterns' in conf:
         kwargs['link_patterns'] = conf['link_patterns']
         
     md = MDPageMarkdown(make_mdpage_link, **kwargs)

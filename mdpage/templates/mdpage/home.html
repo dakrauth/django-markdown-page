@@ -1,19 +1,23 @@
 {% extends "mdpage/base.html" %}
 {% block mdpage_title %}{{ title }}{% endblock mdpage_title%}
 {% block mdpage_content %}
+    {% load pagination_tags %}
+    {% autopaginate pages 100 %}
     <h1>{{ title }}</h1>
     {% with mdp_type.get_absolute_url as mdpt_url %}
-    <p class="well well-sm">
-        {{ count }} page{{ count|pluralize }}
-        {% if mdpage.show_recent_activity_link %}| <a href="{{ mdpt_url }}?recent">Recent Activity</a>{% endif %}
+    {% if mdpage.show_recent_activity_link %}
+    <p>
+        <a href="{{ mdpt_url }}?recent">Recent Activity</a>
     </p>
+    {% endif %}
     <div class="row">
         <div class="col-md-10">
             <section class="page-index{% if listing|length > 8 %} columnar{% endif %}">
-                {% for letter,pages in listing %}
+                {% regroup pages by title.0.upper as letters %}
+                {% for letter in letters %}
                 <div class="page-group">
-                    <p><span class="label label-primary">{{ letter.upper }}</span></p>
-                    <ul class="list-unstyled"> {% for page in pages %}
+                    <p><span class="label label-primary">{{ letter.grouper }}</span></p>
+                    <ul class="list-unstyled"> {% for page in letter.list %}
                         <li>
                             <a href="{{ page.get_absolute_url }}">{{ page.title }}</a>
                         </li> {% endfor %}
@@ -37,5 +41,6 @@
             </div>
         </div>
     </div>
+    {% paginate %}
     {% endwith %}
 {% endblock mdpage_content %}

@@ -9,186 +9,179 @@ from .settings import get_mdpage_setting, mdpage_settings
 from .models import MarkdownPage, MarkdownPageType
 from .forms import MarkdownPageForm, ContentForm
 
-#-------------------------------------------------------------------------------
-def get_page(prefix, slug, raise_404=True):
-    mdp_type = get_object_or_404(MarkdownPageType.published, prefix=prefix)
-    try:
-        page = MarkdownPage.published.get(type=mdp_type, slug=slug)
-    except MarkdownPage.DoesNotExist:
-        if raise_404:
-            raise http.Http404
-        
-        page = None
-        
-    return mdp_type, page
-
-
-#-------------------------------------------------------------------------------
-def mdpage_render(request, tmpl_part, mdp_type, **kws):
-    kws.update(
-        mdp_type=mdp_type,
-        mdpage={k: v for k,v in mdpage_settings.items() if k.startswith('show_')},
-    )
-
-    template_list = [
-        'mdpage/types/{}/{}'.format(mdp_type.prefix or '__root__', tmpl_part),
-        'mdpage/{}'.format(tmpl_part)
-    ]
-
-    return render(request, template_list, kws)
-
-
-#-------------------------------------------------------------------------------
-def page_redirect(page):
-    return http.HttpResponseRedirect(page.get_absolute_url())
-
-
-#-------------------------------------------------------------------------------
-def _mdpage_list_tags(request, mdp_type, **opts):
-    tag = opts.get('tag')
-    count, listing = mdp_type.listing(tag) if tag else 0, []
-    return mdpage_render(request, 'home.html', mdp_type,
-        listing=listing,
-        count=count,
-        title='Pages for topic "{}"'.format(tag)
-    )
-
-
-#-------------------------------------------------------------------------------
-def mdpage_edit(request, prefix, slug):
-    mdp_type, page = get_page(prefix, slug)
-    if request.method == 'POST':
-        if 'cancel' in request.POST:
-            page.unlock(request)
-            return page_redirect(page)
-            
-        form =  MarkdownPageForm(request.POST, instance=page)
-        if form.is_valid():
-            return page_redirect(form.save(request))
-    else:
-        if page.lock(request):
-            page.unlock(request)
-            # return mdpage_render(request, 'locked.html', mdp_type, data)
-            
-        form = MarkdownPageForm(instance=page)
-
-    return mdpage_render(request, 'edit.html', mdp_type, page=page, form=form)
-
 
 #-------------------------------------------------------------------------------
 @login_required
-def _mdpage_new_page(request, mdp_type, title):
-    page = MarkdownPage(type=mdp_type, title=title)
+def _mdpage_new_page(request, vh, title):
+    vh.page = MarkdownPage(type=vh.mdp_type, title=title)
     if request.POST:
-        form = MarkdownPageForm(request.POST, instance=page)
+        form = MarkdownPageForm(request.POST, instance=vh.page)
         if form.is_valid():
-            return page_redirect(form.save(request))
+            vh.page = form.save(request)
+            return vh.redirect()
     else:
-        form = MarkdownPageForm(instance=page)
+        form = MarkdownPageForm(instance=vh.page)
     
-    return mdpage_render(request, 'edit.html', mdp_type, page=page, form=form)
+    return vh.render('edit.html', form=form)
 
 
-#-------------------------------------------------------------------------------
-def _mdpage_get_or_create_page(request, mdp_type, **opts):
-    title = opts.get('new', '')
-    page = mdp_type.markdownpage_set.find(title)
-    if page:
-        return page_redirect(page)
+#===============================================================================
+class ViewHandler(object):
 
-    return _mdpage_new_page(request, mdp_type, title)
+    #---------------------------------------------------------------------------
+    def __init__(self, request, prefix, slug=None, raise_404=True):
+        self.request = request
+        self.mdp_type = get_object_or_404(MarkdownPageType.published, prefix=prefix)
+        self.page = None
+        if slug:
+            self.load_page(slug, raise_404)
 
+    #---------------------------------------------------------------------------
+    def load_page(self, slug, raise_404=True):
+        try:
+            self.page = MarkdownPage.published.get(type=self.mdp_type, slug=slug)
+            return True
+        except MarkdownPage.DoesNotExist:
+            if raise_404:
+                raise http.Http404
 
-#-------------------------------------------------------------------------------
-def _mdpage_page_listing(request, mdp_type, **opts):
-    count, listing = mdp_type.listing()
-    return mdpage_render(request, 'home.html', mdp_type,
-        listing=listing,
-        count=count,
-        title='Page Listing'
-    )
+        self.page = None
+        return False
 
+    #---------------------------------------------------------------------------
+    def render(self, tmpl_part, **kws):
+        kws.update(
+            mdp_type=self.mdp_type,
+            page=self.page,
+            mdpage={k: v for k,v in mdpage_settings.items() if k.startswith('show_')},
+        )
 
-#-------------------------------------------------------------------------------
-def _mdpage_search(request, mdp_type, **opts):
-    search = request.GET.get('search')
-    return mdpage_render(request, 'search.html', mdp_type,
-        pages=mdp_type.markdownpage_set.search(search),
-        search=search
-    )
+        template_list = [
+            'mdpage/types/{}/{}'.format(self.mdp_type.prefix or '__root__', tmpl_part),
+            'mdpage/{}'.format(tmpl_part)
+        ]
 
+        return render(self.request, template_list, kws)
 
-#-------------------------------------------------------------------------------
-def _mdpage_recent_updates(request, mdp_type, **opts):
-    return mdpage_render(request, 'recent.html', mdp_type,
-        pages=mdp_type.markdownpage_set.order_by('-updated')
-    )
+    #---------------------------------------------------------------------------
+    def redirect(self):
+        return http.HttpResponseRedirect(self.page.get_absolute_url())
+    
+    #---------------------------------------------------------------------------
+    def home_new(self, title):
+        title = title or ''
+        self.page = self.mdp_type.markdownpage_set.find(title)
+        if self.page:
+            return self.redirect()
 
+        return _mdpage_new_page(self.request, self, title)
 
-HOME_OPTIONS = (
-    ('search',   _mdpage_search),
-    ('new',      _mdpage_get_or_create_page),
-    ('recent',   _mdpage_recent_updates),
-    ('topic',    _mdpage_list_tags),
-)
+    #---------------------------------------------------------------------------
+    def home_search(self, search):
+        return self.render('search.html',
+            pages=self.mdp_type.markdownpage_set.search(search),
+            search=search
+        )
+
+    #---------------------------------------------------------------------------
+    def home_recent(self, *args):
+        return self.render('recent.html',
+            pages=self.mdp_type.markdownpage_set.order_by('-updated')
+        )
+
+    #---------------------------------------------------------------------------
+    def home_listing(self, *args):
+        return self.render('home.html',
+            pages=self.mdp_type.markdownpage_set.order_by('title'),
+            title='Page Listing'
+        )
+
+    #---------------------------------------------------------------------------
+    def home_topic(self, tag):
+        return self.render('home.html',
+            pages=self.mdp_type.tagged_by(tag).order_by('title') if tag else [],
+            title='Pages for topic "{}"'.format(tag),
+            tag=tag
+        )
+
 
 ################################################################################
 
 
 #-------------------------------------------------------------------------------
-def mdpage_listing(request, prefix):
-    mdp_type = get_object_or_404(MarkdownPageType.published, prefix=prefix)
-
-    for key,func in HOME_OPTIONS:
+def mdpage_home(request, prefix):
+    vh = ViewHandler(request, prefix)
+    for key in ('search', 'new', 'recent', 'topic', 'listing'):
         if key in request.GET:
-            return func(request, **{'mdp_type': mdp_type, key : request.GET.get(key)})
-
+            func = getattr(vh, 'home_{}'.format(key))
+            return func(request.GET.get(key))
+    
     home_slug = get_mdpage_setting('home_slug')
     if home_slug is not None:
-        mdp_type, page = get_page(prefix, get_mdpage_setting('home_slug'), False)
-        if not page:
-            return _mdpage_page_listing(request, mdp_type)
+        if vh.load_page(home_slug, raise_404=False):
+            return vh.render('page.html')
 
-    return mdpage_render(request, 'page.html', mdp_type, page=page)
+    return vh.home_listing(None)
 
 
 #-------------------------------------------------------------------------------
 def mdpage_history(request, prefix, slug, version=None):
-    mdp_type, page = get_page(prefix, slug)
-    return mdpage_render(request, 'history.html', mdp_type,
-        page=page,
-        archive=page.markdownpagearchive_set.get(version=version) if version is not None else None
-    )
+    vh = ViewHandler(request, prefix, slug)
+    arc = None if version is None else vh.page.markdownpagearchive_set.get(version=version)
+    return vh.render('history.html', archive=arc)
 
 
 #-------------------------------------------------------------------------------
 def mdpage_view(request, prefix, slug):
-    mdp_type, page = get_page(prefix, slug, False)
-    if page:
-        return mdpage_render(request, 'page.html', mdp_type, page=page)
+    vh = ViewHandler(request, prefix)
+    if vh.load_page(slug, raise_404=False):
+        return vh.render('page.html')
 
-    if not mdp_type or not request.user.is_authenticated():
+    if not request.user.is_authenticated():
         raise http.Http404('Page not found')
     
-    return _mdpage_new_page(request, mdp_type, slug.capitalize())
+    return _mdpage_new_page(request, vh, slug.capitalize())
 
 
 #-------------------------------------------------------------------------------
 def mdpage_text(request, prefix, slug):
-    mdp_type, page = get_page(prefix, slug)
-    return http.HttpResponse(page.text, content_type="text/plain; charset=utf8")
+    vh = ViewHandler(request, prefix, slug)
+    return http.HttpResponse(vh.page.text, content_type="text/plain; charset=utf8")
 
 
 #-------------------------------------------------------------------------------
 def mdpage_attach(request, prefix, slug):
-    mdp_type, page = get_page(prefix, slug)
+    vh = ViewHandler(request, prefix, slug)
     if request.method == 'POST':
-        form =  ContentForm(request.POST, request.FILES)
+        form = ContentForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save(page)
-            return page_redirect(page)
+            form.save(vh.page)
+            return vh.redirect()
     else:
         form =  ContentForm()
 
-    return mdpage_render(request, 'attach.html', mdp_type, page=page, form=form)
+    return vh.render('attach.html', form=form)
+
+
+#-------------------------------------------------------------------------------
+def mdpage_edit(request, prefix, slug):
+    vh = ViewHandler(request, prefix, slug)
+    if request.method == 'POST':
+        if 'cancel' in request.POST:
+            vh.page.unlock(request)
+            return vh.redirect()
+            
+        form = MarkdownPageForm(request.POST, instance=vh.page)
+        if form.is_valid():
+            form.save(request)
+            return vh.redirect()
+    else:
+        if vh.page.lock(request):
+            vh.page.unlock(request)
+            # return mdpage_render(request, 'locked.html', mdp_type, data)
+            
+        form = MarkdownPageForm(instance=vh.page)
+
+    return vh.render('edit.html', form=form)
+
 

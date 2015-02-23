@@ -50,7 +50,7 @@ def make_urlpatterns(read, write=None, extras=None):
             ])
     
     return patterns('',
-        make_url(read if callable(read) else None, r'^$', views.mdpage_listing, 'mdpage-listing'),
+        make_url(read if callable(read) else None, r'^$', views.mdpage_home, 'mdpage-listing'),
         url(r'^(?P<slug>[^/]+)/', include(inc)),
     )
 
