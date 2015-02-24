@@ -1,11 +1,10 @@
 import re
+from copy import deepcopy
 from django.conf import settings
 
 DEFAULT_SETTINGS = {
-    'link_patterns':  [],
     'mdpage_re':  r'\[\[([^]]+)\]\]',
     'table_classes':  'table table-striped table-bordered',
-    'link_classes':  '',
     'home_slug':  'home',
 
     'extras': {
@@ -19,11 +18,40 @@ DEFAULT_SETTINGS = {
     'show_history_link': False,
     'show_recent_activity_link': False,
     'show_text_link': False,
-    'show_topics': True,
+    'show_topics': False,
 }
 
 mdpage_settings = dict(DEFAULT_SETTINGS.copy(), **getattr(settings, 'MARKDOWN_PAGE', {}))
+mdpage_type_settings = mdpage_settings.pop('types', {})
 
-def get_mdpage_setting(key, default=None):
-    return mdpage_settings.get(key, default)
+
+#-------------------------------------------------------------------------------
+def dict_merge(a, b):
+    if not isinstance(b, dict):
+        return b
+    
+    result = deepcopy(a)
+    for k, v in b.iteritems():
+        if k in result and isinstance(result[k], dict):
+            result[k] = dict_merge(result[k], v)
+        else:
+            result[k] = deepcopy(v)
+    return result
+
+
+type_settings_cache = None
+
+#-------------------------------------------------------------------------------
+def get_settings(prefix=None):
+    global type_settings_cache
+    if type_settings_cache is None:
+        type_settings_cache = {None: mdpage_settings}
+        for type_prefix, type_settings in mdpage_type_settings.items():
+            type_settings_cache[type_prefix] = (
+                dict_merge(mdpage_settings, type_settings)
+                if type_settings
+                else mdpage_settings
+            )
+        
+    return type_settings_cache.get(prefix, mdpage_settings)
 

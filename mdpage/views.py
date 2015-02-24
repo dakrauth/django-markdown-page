@@ -1,4 +1,5 @@
 from django import http
+from django.conf import settings
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
 
@@ -46,12 +47,16 @@ class ViewHandler(object):
 
     #---------------------------------------------------------------------------
     def render(self, tmpl_part, **kws):
+        type_settings = self.mdp_type.settings
+        mdp_settings = {k: v for k,v in type_settings.items() if k.startswith('show_')}
+        
         kws.update(
             mdp_type=self.mdp_type,
             page=self.page,
-            mdpage={k: v for k,v in self.mdp_type.settings.items() if k.startswith('show_')},
+            mdp_settings=mdp_settings,
+            DEBUG=settings.DEBUG
         )
-
+        
         template_list = get_mdp_type_template_list(self.mdp_type, tmpl_part)
         return render(self.request, template_list, kws)
 

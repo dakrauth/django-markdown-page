@@ -2,10 +2,9 @@
 '''
 import re
 import unicodedata
-from django.conf import settings
 from markdown2 import Markdown
 from django.contrib.auth.decorators import user_passes_test, login_required
-from .settings import get_mdpage_setting, mdpage_settings
+from .settings import get_settings
 
 superuser_required = user_passes_test(lambda u: u.is_authenticated() and u.is_active and u.is_superuser)
 staff_required = user_passes_test(lambda u: u.is_authenticated() and u.is_active and u.is_staff)
@@ -30,19 +29,20 @@ def slugify(value):
 class MDPageMarkdown(Markdown):
     
     #---------------------------------------------------------------------------
-    def __init__(self, make_mdpage_link, *args, **kws):
+    def __init__(self, make_mdpage_link, settings, *args, **kws):
         super(MDPageMarkdown, self).__init__(*args, **kws)
         self.make_mdpage_link = make_mdpage_link
         self.mdpage_re = None
+        self.settings = settings
         if self.make_mdpage_link:
-            regex = get_mdpage_setting('mdpage_re')
+            regex = settings.get('mdpage_re')
             if regex:
                 self.mdpage_re = re.compile(regex)
         
     #---------------------------------------------------------------------------
     def _mdpage_pattern_repl(self, match):
         title = match.group(1).strip()
-        wcls = get_mdpage_setting('link_classes')
+        wcls = self.setting.get('link_classes')
         return '<a {}href="{}">{}</a>'.format(
             'class="{}" '.format(wcls) if wcls else '',
             self.make_mdpage_link(title),
@@ -58,8 +58,8 @@ class MDPageMarkdown(Markdown):
 
 
 #-------------------------------------------------------------------------------
-def mdpage_markdown(text, make_mdpage_link=None, conf=None):
-    conf = conf or mdpage_settings
+def mdpage_markdown(text, make_mdpage_link=None, settings=None):
+    settings = settings or get_settings()
     kwargs = {}
     if 'extras' in conf:
         kwargs['extras'] = conf['extras']

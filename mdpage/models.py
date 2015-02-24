@@ -13,7 +13,7 @@ from taggit.managers import TaggableManager
 from taggit.models import Tag, TaggedItem
 
 from .utils import slugify, mdpage_markdown
-from .settings import get_mdpage_setting, mdpage_settings
+from .settings import get_settings
 
 
 #===============================================================================
@@ -86,11 +86,11 @@ class MarkdownPageType(MarkdownPageBase):
     #---------------------------------------------------------------------------
     @property
     def settings(self):
-        return mdpage_settings
+        return get_settings(self.prefix)
 
     #---------------------------------------------------------------------------
     def get_setting(self, key, default=None):
-        return get_mdpage_setting(key, default)
+        return self.settings.get(key, default)
 
 
 #===============================================================================

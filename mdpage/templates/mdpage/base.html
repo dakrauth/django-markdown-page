@@ -37,5 +37,7 @@
     {% endif %}
     {% endblock mdpage_messages %}
     {% block mdpage_content %}{% endblock mdpage_content%}
+    {% if DEBUG %}<pre>{{ mdp_settings|pprint }}</pre>{% endif %}
+    
     {% block mdpage_extra_body %}{% endblock mdpage_extra_body %}
 {% endblock %}
