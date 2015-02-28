@@ -34,6 +34,7 @@ class MDPageMarkdown(Markdown):
         self.make_mdpage_link = make_mdpage_link
         self.mdpage_re = None
         self.settings = settings
+        self.table_classes = settings.get('table_classes')
         if self.make_mdpage_link:
             regex = settings.get('mdpage_re')
             if regex:
@@ -56,6 +57,22 @@ class MDPageMarkdown(Markdown):
         
         return super(MDPageMarkdown, self)._run_span_gamut(text)
 
+    #---------------------------------------------------------------------------
+    def _do_table_classes(self, text):
+        if self.table_classes
+            text = text.replace('<table>', '<table class="{}">'.format(self.table_classes))
+        return text
+
+    #---------------------------------------------------------------------------
+    def _do_wiki_tables(self, text):
+        text = super(MyMarkdown, self)._do_wiki_tables(text)
+        return self._do_table_classes(text)
+
+    #---------------------------------------------------------------------------
+    def _do_tables(self, text):
+        text = super(MyMarkdown, self)._do_tables(text)
+        return self._do_table_classes(text)
+
 
 #-------------------------------------------------------------------------------
 def mdpage_markdown(text, make_mdpage_link=None, settings=None):
@@ -66,12 +83,7 @@ def mdpage_markdown(text, make_mdpage_link=None, settings=None):
     
     if 'link_patterns' in conf:
         kwargs['link_patterns'] = conf['link_patterns']
-        
-    md = MDPageMarkdown(make_mdpage_link, **kwargs)
-    html = unicode(md.convert(text))
-    table_classes = conf.get('table_classes')
-    if table_classes:
-        html = html.replace('<table>', '<table class="{}">'.format(table_classes))
 
-    return html
+    md = MDPageMarkdown(make_mdpage_link, settings, **kwargs)
+    return unicode(md.convert(text))
 
