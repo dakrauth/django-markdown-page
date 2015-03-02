@@ -59,7 +59,7 @@ class MDPageMarkdown(Markdown):
 
     #---------------------------------------------------------------------------
     def _do_table_classes(self, text):
-        if self.table_classes
+        if self.table_classes:
             text = text.replace('<table>', '<table class="{}">'.format(self.table_classes))
         return text
 
