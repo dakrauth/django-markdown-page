@@ -65,25 +65,25 @@ class MDPageMarkdown(Markdown):
 
     #---------------------------------------------------------------------------
     def _do_wiki_tables(self, text):
-        text = super(MyMarkdown, self)._do_wiki_tables(text)
+        text = super(MDPageMarkdown, self)._do_wiki_tables(text)
         return self._do_table_classes(text)
 
     #---------------------------------------------------------------------------
     def _do_tables(self, text):
-        text = super(MyMarkdown, self)._do_tables(text)
+        text = super(MDPageMarkdown, self)._do_tables(text)
         return self._do_table_classes(text)
 
 
 #-------------------------------------------------------------------------------
-def mdpage_markdown(text, make_mdpage_link=None, settings=None):
-    settings = settings or get_settings()
+def mdpage_markdown(text, make_mdpage_link=None, mdp_settings=None):
+    mdp_settings = mdp_settings or get_settings()
     kwargs = {}
-    if 'extras' in conf:
-        kwargs['extras'] = conf['extras']
+    if 'extras' in mdp_settings:
+        kwargs['extras'] = mdp_settings['extras']
     
-    if 'link_patterns' in conf:
-        kwargs['link_patterns'] = conf['link_patterns']
+    if 'link_patterns' in mdp_settings:
+        kwargs['link_patterns'] = mdp_settings['link_patterns']
 
-    md = MDPageMarkdown(make_mdpage_link, settings, **kwargs)
+    md = MDPageMarkdown(make_mdpage_link, mdp_settings, **kwargs)
     return unicode(md.convert(text))
 
