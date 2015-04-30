@@ -4,11 +4,11 @@
     {% load pagination_tags mdpage_tags %}
     {% autopaginate pages 100 %}
     <h1>{{ title }}</h1>
-    {% if mdp_settings.show_recent_activity_link %}
+    {% if mdp_type.show_recent %}
     <p><a href="{{ mdp_type.get_absolute_url }}?recent">Recent Activity</a></p>
     {% endif %}
-    {% select_template mdp_type "home_listing.html" as tmpl %}
-    {% if mdp_settings.show_topics %}
+    {% select_template mdp_type mdp_type.home_layout as tmpl %}
+    {% if mdp_type.show_topics %}
     <div class="row">
         <div class="col-md-10">
             {% include tmpl %}

@@ -59,8 +59,12 @@ class MarkdownPageBase(models.Model):
 
 #===============================================================================
 class MarkdownPageType(MarkdownPageBase):
-    prefix      = models.SlugField(max_length=50, unique=True, blank=True)
-    description = models.CharField(max_length=100, blank=True)
+    prefix       = models.SlugField(max_length=50, unique=True, blank=True)
+    description  = models.CharField(max_length=100, blank=True)
+    show_history = models.BooleanField(default=True)
+    show_recent  = models.BooleanField(default=True)
+    show_text    = models.BooleanField(default=True)
+    show_topics  = models.BooleanField(default=True)
     
     #---------------------------------------------------------------------------
     def __unicode__(self):
@@ -73,10 +77,11 @@ class MarkdownPageType(MarkdownPageBase):
     #---------------------------------------------------------------------------
     def tags(self):
         return (
-            TaggedItem.tags_for(MarkdownPage)
-                      .filter(markdownpage__type=self)
-                      .annotate(counter=models.Count('name'))
-                      .values('name', 'slug', 'counter')
+            TaggedItem
+                .tags_for(MarkdownPage)
+                .filter(markdownpage__type=self)
+                .annotate(counter=models.Count('name'))
+                .values('name', 'slug', 'counter')
         )
 
     #---------------------------------------------------------------------------
@@ -91,6 +96,10 @@ class MarkdownPageType(MarkdownPageBase):
     #---------------------------------------------------------------------------
     def get_setting(self, key, default=None):
         return self.settings.get(key, default)
+
+    #---------------------------------------------------------------------------
+    def home_layout(self):
+        return 'home/{}.html'.format(self.get_setting('home_layout'))
 
 
 #===============================================================================

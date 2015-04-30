@@ -47,13 +47,9 @@ class ViewHandler(object):
 
     #---------------------------------------------------------------------------
     def render(self, tmpl_part, **kws):
-        type_settings = self.mdp_type.settings
-        mdp_settings = {k: v for k,v in type_settings.items() if k.startswith('show_')}
-        
         kws.update(
             mdp_type=self.mdp_type,
             page=self.page,
-            mdp_settings=mdp_settings,
             DEBUG=settings.DEBUG
         )
         
@@ -82,14 +78,14 @@ class ViewHandler(object):
 
     #---------------------------------------------------------------------------
     def home_listing(self, *args):
-        return self.render('home.html',
+        return self.render('home/base.html',
             pages=self.mdp_type.markdownpage_set.order_by('title'),
             title='Page Listing'
         )
 
     #---------------------------------------------------------------------------
     def home_topic(self, tag):
-        return self.render('home.html',
+        return self.render('home/base.html',
             pages=self.mdp_type.tagged_by(tag).order_by('title') if tag else [],
             title='Pages for topic "{}"'.format(tag),
             tag=tag

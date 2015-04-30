@@ -6,7 +6,8 @@ DEFAULT_SETTINGS = {
     'mdpage_re':  r'\[\[([^]]+)\]\]',
     'table_classes':  'table table-striped table-bordered',
     'home_slug':  'home',
-
+    'home_layout': 'list',
+    
     'extras': {
         'footnotes': True,
         'demote-headers': +1,
@@ -14,11 +15,6 @@ DEFAULT_SETTINGS = {
         'tables': True,
         'fenced-code-blocks': {}
     },
-
-    'show_history_link': False,
-    'show_recent_activity_link': False,
-    'show_text_link': False,
-    'show_topics': False,
 }
 
 mdpage_settings = dict(DEFAULT_SETTINGS.copy(), **getattr(settings, 'MARKDOWN_PAGE', {}))

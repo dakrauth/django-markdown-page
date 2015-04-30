@@ -1,0 +1,15 @@
+<section class="page-index{% if pages|length > 8 %} columnar{% endif %}">
+    {% regroup pages by title.0.upper as letters %}
+    {% for letter in letters %}
+    <div class="page-group">
+        <p><span class="label label-primary">{{ letter.grouper }}</span></p>
+        <ul class="list-unstyled"> {% for page in letter.list %}
+            <li>
+                <a href="{{ page.get_absolute_url }}">{{ page.title }}</a>
+            </li> {% endfor %}
+        </ul>
+    </div>
+    {% empty %}
+    <em>Sorry, no pages created yet.</em>
+    {% endfor %}
+</section>

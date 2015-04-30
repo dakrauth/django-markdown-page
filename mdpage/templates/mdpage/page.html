@@ -7,8 +7,8 @@
         <div class="mdpage-info">
             <span class="label label-primary text-uppercase">{{ page.updated|date }}</span>
             <span class="mdpage-page-menu">
-                {% if is_auth or mdp_settings.show_history_link %}<a href="{{ page.history_url }}">History</a>{% endif %}
-                {% if is_auth or mdp_settings.show_text_link %}<a href="{{ page.text_url }}">Text</a>{% endif %}
+                {% if is_auth or mdp_type.show_history %}<a href="{{ page.history_url }}">History</a>{% endif %}
+                {% if is_auth or mdp_type.show_text %}<a href="{{ page.text_url }}">Text</a>{% endif %}
                 {% if is_auth %}<a href="{{ page.edit_url }}">Edit</a>{% endif %}
             </span>
         </div>
@@ -28,7 +28,7 @@
         </p>
         {% endif %}
     
-        {% if mdp_settings.show_topics and page.tags.count %}
+        {% if mdp_type.show_topics and page.tags.count %}
         <div class="well well-sm">
             Topics: {% for tag in page.tags.all %}
             <a class="badge" href="{{ page.type.get_absolute_url }}?topic={{ tag }}">{{ tag }}</a>{% endfor %}
