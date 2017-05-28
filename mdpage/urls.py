@@ -54,10 +54,10 @@ def make_urlpatterns(read, write=None, extras=None, url_format='simple'):
                 for item in patts
             ])
     
-    return patterns('',
+    return [
         make_url(read if callable(read) else None, r'^$', views.mdpage_home, 'mdpage-home'),
         url(item_url_formats[url_format], include(inc)),
-    )
+    ]
 
 
 urlpatterns = make_urlpatterns(read=True, write='login', extras='login')
