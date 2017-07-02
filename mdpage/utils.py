@@ -19,9 +19,8 @@ def get_mdp_type_template_list(mdp_type, tmpl_part):
 
 #-------------------------------------------------------------------------------
 def slugify(value):
-    value = unicode(value)
     value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
-    value = unicode(re.sub('[^\w\s-]', '', value).strip().lower())
+    value = re.sub('[^\w\s-]', '', value.decode()).strip().lower()
     return re.sub('[-\s]+', '-', value)
 
 
@@ -85,5 +84,5 @@ def mdpage_markdown(text, make_mdpage_link=None, mdp_settings=None):
         kwargs['link_patterns'] = mdp_settings['link_patterns']
 
     md = MDPageMarkdown(make_mdpage_link, mdp_settings, **kwargs)
-    return unicode(md.convert(text))
+    return md.convert(text)
 
