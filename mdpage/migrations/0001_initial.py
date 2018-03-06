@@ -43,7 +43,7 @@ class Migration(migrations.Migration):
                 ('created', models.DateTimeField()),
                 ('text', models.TextField(blank=True)),
                 ('user_id', models.IntegerField(null=True, blank=True)),
-                ('page', models.ForeignKey(to='mdpage.MarkdownPage')),
+                ('page', models.ForeignKey(to='mdpage.MarkdownPage', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('-created',),
@@ -81,13 +81,13 @@ class Migration(migrations.Migration):
                 ('subtype', models.CharField(default=b'octet-stream', max_length=50)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('updated', models.DateTimeField(auto_now=True)),
-                ('page', models.ForeignKey(to='mdpage.MarkdownPage')),
+                ('page', models.ForeignKey(to='mdpage.MarkdownPage', on_delete=models.CASCADE)),
             ],
         ),
         migrations.AddField(
             model_name='markdownpage',
             name='type',
-            field=models.ForeignKey(to='mdpage.MarkdownPageType'),
+            field=models.ForeignKey(to='mdpage.MarkdownPageType', on_delete=models.CASCADE),
         ),
         migrations.AlterUniqueTogether(
             name='markdownpage',

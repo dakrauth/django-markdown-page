@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 from django.db import models
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from choice_enum import ChoiceEnumeration
 from taggit.managers import TaggableManager
@@ -138,7 +138,7 @@ class MarkdownPageManager(models.Manager):
 
 #===============================================================================
 class MarkdownPage(MarkdownPageBase):
-    type    = models.ForeignKey(MarkdownPageType)
+    type    = models.ForeignKey(MarkdownPageType, on_delete=models.CASCADE)
     slug    = models.SlugField(max_length=100)
     title   = models.CharField(max_length=100)
     text    = models.TextField(blank=True)
@@ -253,7 +253,7 @@ class MarkdownPage(MarkdownPageBase):
 
 #===============================================================================
 class MarkdownPageArchive(models.Model):
-    page    = models.ForeignKey(MarkdownPage)
+    page    = models.ForeignKey(MarkdownPage, on_delete=models.CASCADE)
     version = models.IntegerField()
     created = models.DateTimeField()
     text    = models.TextField(blank=True)
@@ -301,7 +301,7 @@ def upload_static_content_to(instance, filename):
 
 #===============================================================================
 class StaticContent(models.Model):
-    page        = models.ForeignKey(MarkdownPage)
+    page        = models.ForeignKey(MarkdownPage, on_delete=models.CASCADE)
     label       = models.SlugField(unique=True)
     description = models.CharField(blank=True, max_length=255)
     media       = models.FileField(upload_to=upload_static_content_to)

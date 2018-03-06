@@ -32,6 +32,6 @@ def do_markdown(parser, token):
     return MarkdownNode(nodelist)
 
 #-------------------------------------------------------------------------------
-@register.assignment_tag
+@register.simple_tag
 def select_template(mdp_type, tmpl_part):
     return loader.select_template(utils.get_mdp_type_template_list(mdp_type, tmpl_part))
