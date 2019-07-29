@@ -7,7 +7,7 @@ DEFAULT_SETTINGS = {
     'table_classes':  'table table-striped table-bordered',
     'home_slug':  'home',
     'home_layout': 'list',
-    
+
     'extras': {
         'footnotes': True,
         'demote-headers': +1,
@@ -21,11 +21,10 @@ mdpage_settings = dict(DEFAULT_SETTINGS.copy(), **getattr(settings, 'MARKDOWN_PA
 mdpage_type_settings = mdpage_settings.pop('types', {})
 
 
-#-------------------------------------------------------------------------------
 def dict_merge(a, b):
     if not isinstance(b, dict):
         return b
-    
+
     result = deepcopy(a)
     for k, v in b.items():
         if k in result and isinstance(result[k], dict):
@@ -37,7 +36,6 @@ def dict_merge(a, b):
 
 type_settings_cache = None
 
-#-------------------------------------------------------------------------------
 def get_settings(prefix=None):
     global type_settings_cache
     if type_settings_cache is None:
@@ -48,6 +46,6 @@ def get_settings(prefix=None):
                 if type_settings
                 else mdpage_settings
             )
-        
+
     return type_settings_cache.get(prefix, mdpage_settings)
 

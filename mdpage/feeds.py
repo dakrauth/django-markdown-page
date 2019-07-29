@@ -9,27 +9,22 @@ from django.utils.safestring import mark_safe
 from mdpage.models import MarkdownPageArchive
 
 
-#===============================================================================
 class AtomMarkdownPageFeed(Feed):
     feed_type = Atom1Feed
     title = 'Markdown Page RSS'
     description = 'Latest page changes'
     subtitle = description
-    link = '' 
+    link = ''
 
-    #---------------------------------------------------------------------------
     def item_title(self, item):
         return item.page.title
-        
-    #---------------------------------------------------------------------------
+
     def item_pubdate(self, item):
         return item.created
 
-    #---------------------------------------------------------------------------
     def item_link(self, item):
         return item.page.get_absolute_url()
 
-    #---------------------------------------------------------------------------
     def items(self):
         return MarkdownPageArchive.objects.all()[:25]
 

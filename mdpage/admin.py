@@ -5,9 +5,8 @@ from mdpage import models as mdpage
 # See http://docs.djangoproject.com/en/dev/ref/contrib/admin/ for
 # a full list of the options you can use in these classes.
 
-#===============================================================================
 class MarkdownPageAdmin(admin.ModelAdmin):
-    list_display = ( 
+    list_display = (
         'title',
         'version',
         'created',
@@ -19,9 +18,8 @@ class MarkdownPageAdmin(admin.ModelAdmin):
 
 
 
-#===============================================================================
 class MarkdownPageArchiveAdmin(admin.ModelAdmin):
-    list_display = ( 
+    list_display = (
         'page',
         'version',
         'created',
@@ -32,9 +30,8 @@ class MarkdownPageArchiveAdmin(admin.ModelAdmin):
 
 
 
-#===============================================================================
 class StaticContentAdmin(admin.ModelAdmin):
-    list_display = ( 
+    list_display = (
         'label',
         'description',
         'type',

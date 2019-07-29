@@ -3,7 +3,9 @@
     <div class="panel-body">
         <ul id="tags" class="list-unstyled">{% for tag in mdp_type.tags %}
             <li>
-                <a href="{{ mdp_type.get_absolute_url }}?topic={{ tag.slug }}">{{ tag.name }} <span class="badge">{{ tag.counter }}</span></a>
+                <a href="{{ mdp_type.get_absolute_url }}?topic={{ tag.slug }}">
+                    <strong>{{ tag.name }}</strong>
+                    <em style="color: #999">- {{ tag.count }}</em></a>
             </li>
         {% empty %}No topics available{% endfor %}</ul>
     </div>
