@@ -15,7 +15,7 @@ def _mdpage_new_page(request, vh, title):
         form = MarkdownPageForm(request.POST, instance=vh.page)
         if form.is_valid():
             page = form.save(request)
-            return http.HttpResponseRedirect(self.page.get_absolute_url())
+            return http.HttpResponseRedirect(vh.page.get_absolute_url())
     else:
         form = MarkdownPageForm(instance=vh.page)
 
@@ -80,9 +80,6 @@ class ViewHandler(object):
             title='Pages for topic "{}"'.format(tag),
             tag=tag
         )
-
-
-################################################################################
 
 
 def mdpage_home(request, prefix):
