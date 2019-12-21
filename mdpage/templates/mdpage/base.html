@@ -18,6 +18,7 @@
         {% endblock mdpage_menu %}
         {% block mdpage_search %}
         <form action="{{ mdpage_listing }}" class="form-inline" method="get" accept-charset="utf-8">
+            {% csrf_token %}
             <div class="input-group">
                 <input placeholder="Search" type="search" class="input-sm form-control" name="search" value="{{ search }}">
                 <span class="input-group-btn">

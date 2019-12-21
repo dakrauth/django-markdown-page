@@ -3,7 +3,8 @@
 {% block mdpage_content %}
     <h1>{% if page.title %}{{ page.title }}{% else %}Create New Page{% endif %}</h1>
     {% load bootstrap3 %}
-    <form class="mdpage-form" action="" method="post" accept-charset="utf-8">{% csrf_token %}
+    <form class="mdpage-form" action="" method="post" accept-charset="utf-8">
+        {% csrf_token %}
         {% bootstrap_form form %}
         {% buttons %}
         <button type="submit" class="btn btn-primary">Save</button>

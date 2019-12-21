@@ -1,5 +1,5 @@
 from django.contrib import admin
-from mdpage import models as mdpage
+from . import models as mdpage
 
 # The following classes define the admin interface for your models.
 # See http://docs.djangoproject.com/en/dev/ref/contrib/admin/ for

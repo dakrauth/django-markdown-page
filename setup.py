@@ -22,6 +22,7 @@ setup(
     long_description=long_description,
     platforms=['any'],
     license='MIT License',
+    install_requires=['django-taggit', 'choice_enum' 'markdown2'],
     classifiers=(
         'Environment :: Web Environment',
         'Framework :: Django',

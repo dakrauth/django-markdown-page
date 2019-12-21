@@ -1,8 +1,11 @@
 from datetime import datetime
+
 from django import forms
 from django.forms.models import modelformset_factory
 from django.contrib import messages
-from mdpage import models
+
+from . import models
+
 
 class TagForm(forms.ModelForm):
 

@@ -6,7 +6,7 @@ from django.utils.feedgenerator import Atom1Feed
 from django.shortcuts import get_object_or_404
 from django.utils.safestring import mark_safe
 
-from mdpage.models import MarkdownPageArchive
+from .models import MarkdownPageArchive
 
 
 class AtomMarkdownPageFeed(Feed):

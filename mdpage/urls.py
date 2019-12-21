@@ -1,6 +1,6 @@
 from django.conf.urls import *
-from mdpage import views
-from mdpage.utils import superuser_required, staff_required, login_required
+from . import views
+from .utils import superuser_required, staff_required, login_required
 
 item_url_formats = {
     'simple': r'^(?P<slug>[^/]+)/',
