@@ -1,8 +1,7 @@
-from datetime import datetime
-
 from django import forms
-from django.forms.models import modelformset_factory
+from django.utils import timezone
 from django.contrib import messages
+from django.forms.models import modelformset_factory
 
 from . import models
 
@@ -28,7 +27,7 @@ class MarkdownPageForm(forms.ModelForm):
         if (
             self.instance and
             self.instance.locked and
-            self.instance.locked < datetime.now()
+            self.instance.locked < timezone.now()
         ):
             raise forms.ValidationError('Allotted time has expired.')
 

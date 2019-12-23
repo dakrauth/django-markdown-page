@@ -2,11 +2,11 @@ import re
 import os
 import operator
 import mimetypes
-from datetime import datetime, timedelta
 
 from django.db import models
 from django.conf import settings
 from django.urls import reverse
+from django.utils import timezone
 
 from choice_enum import ChoiceEnumeration
 from taggit.managers import TaggableManager
@@ -19,7 +19,7 @@ from .settings import get_settings
 class PublishedManager(models.Manager):
 
     def get_queryset(self):
-        now = datetime.now()
+        now = timezone.now()
         return super(PublishedManager, self).get_queryset().filter(
             (models.Q(end_date__isnull=True) | models.Q(end_date__gt=now)) &
             (models.Q(pub_date__isnull=True) | models.Q(pub_date__lte=now)),
@@ -152,7 +152,7 @@ class MarkdownPage(MarkdownPageBase):
         return 'mdpage:{}'.format(self.pk)
 
     def _set_lock(self, request):
-        self.locked = datetime.now() + timedelta(seconds=60*30)
+        self.locked = timezone.now() + timedelta(seconds=60*30)
         super(MarkdownPage, self).save()
         request.session[self.session_key] = self.locked.timetuple()[:6]
 
@@ -173,7 +173,7 @@ class MarkdownPage(MarkdownPageBase):
             # must be the original lock owner, let them pass
             return False
 
-        now = datetime.now().timetuple()[:6]
+        now = timezone.now().timetuple()[:6]
         if now > expires:
             # uh-oh, this previous owner's lock has expired.
             self._set_lock(request)
