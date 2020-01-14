@@ -5,7 +5,7 @@
         <p><span class="label label-primary">{{ letter.grouper }}</span></p>
         <ul class="list-unstyled"> {% for page in letter.list %}
             <li>
-                <a href="{{ page.get_absolute_url }}">{{ page.title }}</a>
+                <a href="{{ page.get_absolute_url }}">{{ page.title }}</a> {% if page.tags.count %}<sup>&dagger;</sup>{% endif %}
             </li> {% endfor %}
         </ul>
     </div>

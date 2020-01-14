@@ -4,13 +4,26 @@
     <h1>{% if page %}{{ page.title }}{% else %}{{ context.description }}{% endif %}</h1>
     {% with user.is_authenticated as is_auth  %}
     {% if page %}
+        <style>
+            .mdpage-page-menu a:not(:last-child)::after { content: " | "; }
+            .mdpage-page-menu a:first-child::before { content: " ∙ "; }
+            a.mdpage-topics:not(:last-child)::after { content: " | "; }
+        </style>
         <div class="mdpage-info">
-            <span class="label label-primary text-uppercase">{{ page.updated|date }}</span>
-            <span class="mdpage-page-menu">
-                {% if is_auth or mdp_type.show_history %}<a href="{{ page.history_url }}">History</a>{% endif %}
-                {% if is_auth or mdp_type.show_text %}<a href="{{ page.text_url }}">Text</a>{% endif %}
-                {% if is_auth %}<a href="{{ page.edit_url }}">Edit</a>{% endif %}
-            </span>
+            <div>
+                <span class="label label-primary text-uppercase">{{ page.updated|date }}</span>
+                <span class="mdpage-page-menu">
+                    {% if is_auth or mdp_type.show_history %}<a href="{{ page.history_url }}">History</a>{% endif %}
+                    {% if is_auth or mdp_type.show_text %}<a href="{{ page.text_url }}">Text</a>{% endif %}
+                    {% if is_auth %}<a href="{{ page.edit_url }}">Edit</a>{% endif %}
+                </span>
+            </div>
+            {% if mdp_type.show_topics and page.tags.count %}
+            <div class="mdpage-topics">
+                Topics: {% for tag in page.tags.all %}
+                <a class="badge" href="{{ page.type.get_absolute_url }}?topic={{ tag }}">{{ tag }}</a>{% endfor %}
+            </div>
+            {% endif %}
         </div>
 
         <div class="markdown">
@@ -27,17 +40,9 @@
             </small></em>
         </p>
         {% endif %}
-    
-        {% if mdp_type.show_topics and page.tags.count %}
-        <div class="well well-sm">
-            Topics: {% for tag in page.tags.all %}
-            <a class="badge" href="{{ page.type.get_absolute_url }}?topic={{ tag }}">{{ tag }}</a>{% endfor %}
-        </div>
-        {% endif %}
-    
     {% endif %}
     {% endwith %}
-    
+
     {% if 0 %}
     <h2 class="heading wiki-title">
         <div class="mdpage-menu"><a href="{% url 'mdpage_attach' page.slug %}">Upload Attachment</a></div>

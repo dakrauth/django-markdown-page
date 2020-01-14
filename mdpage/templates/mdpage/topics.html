@@ -1,12 +1,15 @@
-<div class="panel panel-default">
-    <div class="panel-heading">Topics</div>
-    <div class="panel-body">
+<div class="card ">
+    <h4 class="card-header bg-light">Topics</h4>
+    <div class="card-body p-2">
         <ul id="tags" class="list-unstyled">{% for tag in mdp_type.tags %}
             <li>
-                <a href="{{ mdp_type.get_absolute_url }}?topic={{ tag.slug }}">
-                    <strong>{{ tag.name }}</strong>
-                    <em style="color: #999">- {{ tag.count }}</em></a>
+                <a class="mr-1" href="{{ mdp_type.get_absolute_url }}?topic={{ tag.slug }}">
+                    <strong>{{ tag.name }}</strong></a>
+                <em class="text-muted">{{ tag.count }}</em>
             </li>
-        {% empty %}No topics available{% endfor %}</ul>
+            {% empty %}
+            <li>No topics available</li>
+            {% endfor %}
+        </ul>
     </div>
 </div>

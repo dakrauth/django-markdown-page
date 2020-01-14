@@ -3,6 +3,7 @@ import os
 import operator
 import mimetypes
 from datetime import timedelta
+from functools import reduce
 
 from django.db import models
 from django.conf import settings
