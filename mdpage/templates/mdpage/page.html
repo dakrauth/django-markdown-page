@@ -1,22 +1,20 @@
 {% extends "mdpage/base.html" %}
 {% block mdpage_title %}{% if page %}{{ page.title }}{% else %}{{ context.description }}{% endif %} {% endblock %}
 {% block mdpage_content %}
-    <h1>{% if page %}{{ page.title }}{% else %}{{ context.description }}{% endif %}</h1>
+    <h1 class="{% if not page.is_published %}text-warning{% endif %}">{% if page %}{{ page.title }}{% else %}{{ context.description }}{% endif %}</h1>
     {% with user.is_authenticated as is_auth  %}
     {% if page %}
-        <style>
-            .mdpage-page-menu a:not(:last-child)::after { content: " | "; }
-            .mdpage-page-menu a:first-child::before { content: " ∙ "; }
-            a.mdpage-topics:not(:last-child)::after { content: " | "; }
-        </style>
         <div class="mdpage-info">
             <div>
                 <span class="label label-primary text-uppercase">{{ page.updated|date }}</span>
-                <span class="mdpage-page-menu">
-                    {% if is_auth or mdp_type.show_history %}<a href="{{ page.history_url }}">History</a>{% endif %}
-                    {% if is_auth or mdp_type.show_text %}<a href="{{ page.text_url }}">Text</a>{% endif %}
-                    {% if is_auth %}<a href="{{ page.edit_url }}">Edit</a>{% endif %}
-                </span>
+                <ul class="list-inline mdpage-page-menu">
+                    {% if is_auth and not page.is_published %}
+                    <li class="list-inline-item"><strong class="text-warning">Pending</strong></li>
+                    {% endif %}
+                    {% if is_auth or mdp_type.show_history %}<li class="list-inline-item"><a href="{{ page.history_url }}">History</a></li>{% endif %}
+                    {% if is_auth or mdp_type.show_text %}<li class="list-inline-item"><a href="{{ page.text_url }}">Text</a></li>{% endif %}
+                    {% if is_auth %}<li class="list-inline-item"><a href="{{ page.edit_url }}">Edit</a></li>{% endif %}
+                </ul>
             </div>
             {% if mdp_type.show_topics and page.tags.count %}
             <div class="mdpage-topics">
@@ -32,11 +30,13 @@
         <hr>
         {% if is_auth %}
         <p class="text-center text-muted">
-            <em><small>{% with page.latest_archive as arc %}
-            Version {{ page.version }} by {{ arc.user }} | 
-            Created: {{ page.created|date:"D, j M y P" }} | 
+            <em><small>
+            Status: <strong>{{ page.get_status_display }}</strong> &middot;
+            Created: {{ page.created|date:"D, j M y P" }} &middot;
             Updated: {{ page.updated|date:"D, j M y P" }}
-            {% endwith %}
+            {% if page.pub_date %}
+             &middot; Published: {{ page.pub_date }}
+            {% endif %}
             </small></em>
         </p>
         {% endif %}

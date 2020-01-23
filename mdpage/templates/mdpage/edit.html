@@ -1,33 +1,41 @@
 {% extends "mdpage/base.html" %}
 {% block mdpage_title %}{% if page.title %}{{ page.title }}{% else %}Create New Page{% endif %}{% endblock mdpage_title %}
 {% block mdpage_content %}
-    <h1>{% if page.title %}{{ page.title }}{% else %}Create New Page{% endif %}</h1>
     {% load bootstrap3 %}
-    <form class="mdpage-form" action="" method="post" accept-charset="utf-8">
-        {% csrf_token %}
-        {% bootstrap_form form %}
-        {% buttons %}
-        <button type="submit" class="btn btn-primary">Save</button>
-        {% endbuttons %}
-    </form>
-    {% block mdpage_cheatsheet %}
-    {% load mdpage_tags %}
-    <hr>
-    <div class="markdown">
-        {% select_template mdp_type "cheatsheet.text" as tmpl %}
-        {% markdown %}
-        {% include tmpl %}
-        {% endmarkdown %}
+    <div class="container edit-container">
+        <div class="row">
+            <div class="col-md-8">
+                <h1>{% if page.title %}{{ page.title }}{% else %}Create New Page{% endif %}</h1>
+                <form class="mdpage-form" action="" method="post" accept-charset="utf-8">
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+                    {% buttons %}
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    {% endbuttons %}
+                </form>
+                {% block mdpage_cheatsheet %}
+            </div>
+            <div class="col-md-4">
+                <div class="edit-markdown-wrapper">
+                    {% load mdpage_tags %}
+                    <div class="markdown">
+                        {% markdown %}
+                        {% include "mdpage/cheatsheet.text" %}
+                        {% endmarkdown %}
+                    </div>
+                    {% endblock mdpage_cheatsheet %}
+                </div>
+            </div>
+        </div>
     </div>
-    {% endblock mdpage_cheatsheet %}
 {% endblock mdpage_content %}
 {% block mdpage_extra_body %}
     {{ block.super }}
     <script>
         (function() {
-            var INDENT = "    ";
+            const INDENT = "    ";
             document.getElementById('id_text').addEventListener('keydown', function(evt) {
-                var start = this.selectionStart;
+                let start = this.selectionStart;
                 if(evt.key === "Tab" || evt.keyCode === 9 || evt.which === 9) { // tab was pressed
                     // get caret position/selection
                     // set textarea value to: text before caret + tab + text after caret

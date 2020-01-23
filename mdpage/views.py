@@ -1,155 +1,231 @@
 from django import http
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 from django.utils.functional import cached_property
-from django.shortcuts import get_object_or_404, render
-from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ImproperlyConfigured
+from django.views.generic import ListView, CreateView, DetailView, UpdateView
+from django.contrib.auth.mixins import UserPassesTestMixin
 
-from .models import MarkdownPage, MarkdownPageType
-from .forms import MarkdownPageForm, ContentForm
-from .utils import get_mdp_type_template_list
-
-@login_required
-def _mdpage_new_page(request, vh, title):
-    vh.page = MarkdownPage(type=vh.mdp_type, title=title)
-    if request.POST:
-        form = MarkdownPageForm(request.POST, instance=vh.page)
-        if form.is_valid():
-            page = form.save(request)
-            return http.HttpResponseRedirect(vh.page.get_absolute_url())
-    else:
-        form = MarkdownPageForm(instance=vh.page)
-
-    return vh.render('edit.html', form=form)
+from . import utils
+from .forms import MarkdownPageForm
+from .models import MarkdownPage, MarkdownPageType, MarkdownPageArchive
+from .diffpatch import DiffPatch
 
 
-class ViewHandler(object):
+class Permissions:
+    SUPERUSER = 4
+    STAFF = 3
+    AUTHENTICATED = 2
+    ANONYMOUS = 1
 
-    def __init__(self, request, prefix, slug=None, raise_404=True):
-        self.request = request
-        self.mdp_type = get_object_or_404(MarkdownPageType.published, prefix=prefix)
-        self.slug = slug
-        self.raise_404 = raise_404
+    READ = 'read'
+    WRITE = 'write'
+    EXTRAS = 'extras'
+
+    DEFAULT_LEVEL = ANONYMOUS
+    LEVELS = {SUPERUSER, STAFF, AUTHENTICATED, ANONYMOUS}
+    ACTIONS = {READ, WRITE, EXTRAS}
+
+    def __init__(self, read, write=None, extras=None):
+        self.read = read
+        self.extras = extras or read
+        self.write = write
+        if self.write is None:
+            self.write = self.read if self.read is self.SUPERUSER else self.read + 1
+
+    def __str__(self):
+        return f'Auth(read={self.read}, write={self.write}, extras={self.extras})'
+
+    def check(self, user, perm):
+        if user.is_superuser:
+            user_level = self.SUPERUSER
+        elif user.is_staff:
+            user_level = self.STAFF
+        elif user.is_authenticated:
+            user_level = self.AUTHENTICATED
+        else:
+            user_level = self.ANONYMOUS
+
+        return user_level >= getattr(self, perm, self.SUPERUSER)
+
+
+class PermissionMixin(UserPassesTestMixin):
+    permission_type = None
+    perm_class = Permissions
+
+    def get_perm_class(self):
+        return self.perm_class
+
+    def get_permission_type(self):
+        if self.permission_type not in self.get_perm_class().ACTIONS:
+            raise ImproperlyConfigured("Missing definition of 'permission_type'")
+
+        return self.permission_type
+
+    @cached_property
+    def perms(self):
+        perm_class = self.get_perm_class()
+        perms = self.kwargs.get('perms', perm_class.DEFAULT_LEVEL)
+        return perm_class(perms) if isinstance(perms, int) else perm_class(**perms)
+
+    def test_func(self):
+        return self.perms.check(self.request.user, self.get_permission_type())
+
+
+class TemplateNameMixin:
+
+    def get_template_names(self):
+        if self.template_name is None:
+            raise ImproperlyConfigured("Missing definition of 'template_name'")
+
+        return utils.get_mdp_type_template_list(
+            self.template_name,
+            self.kwargs['prefix'],
+        )
+
+
+class BasePageMixin(PermissionMixin, TemplateNameMixin):
+    pass
+
+
+class LandingView(BasePageMixin, ListView):
+    template_name = 'listing.html'
+    permission_type = 'read'
+    context_object_name = 'pages'
+
+    def get_queryset(self):
+        return MarkdownPage.objects.published(type__prefix=self.kwargs['prefix'])
+
+    def get_context_data(self, **kwargs):
+        mdp_type = get_object_or_404(
+            MarkdownPageType.objects.published(),
+            prefix=self.kwargs['prefix']
+        )
+
+        pages = self.object_list
+        search = self.request.GET.get('search', '')
+        if search:
+            pages = pages.search(search)
+
+        topic = self.request.GET.get('topic')
+        if topic:
+            pages = pages.filter(tags__name=topic)
+
+        if self.perms.check(self.request.user, 'write'):
+            pending = MarkdownPage.objects.unpublished(type__prefix=self.kwargs['prefix'])
+        else:
+            pending = []
+
+        return super().get_context_data(
+            object_list=pages.order_by('title'),
+            mdp_type=mdp_type,
+            title='Page Listing',
+            search=search,
+            topic=topic,
+            pending=pending,
+            **kwargs
+        )
+
+class PageViewMixin(BasePageMixin):
+
+    @property
+    def slug(self):
+        return self.kwargs.get('slug', None)
 
     @cached_property
     def page(self):
-        if self.slug:
-            try:
-                return MarkdownPage.published.get(type=self.mdp_type, slug=self.slug)
-            except MarkdownPage.DoesNotExist:
-                if self.raise_404:
-                    raise http.Http404
+        slug = self.slug
+        if slug is None:
+            return None
 
-        return None
-
-    def render(self, tmpl_part, **kws):
-        kws.update(
-            mdp_type=self.mdp_type,
-            page=self.page,
-            DEBUG=settings.DEBUG
+        page = get_object_or_404(
+            MarkdownPage.objects.select_related('type'),
+            type__prefix=self.kwargs['prefix'],
+            slug=slug
         )
 
-        template_list = get_mdp_type_template_list(self.mdp_type, tmpl_part)
-        return render(self.request, template_list, kws)
+        if page.is_published or self.perms.check(self.request.user, 'write'):
+            return page
 
-    def redirect(self):
-        return http.HttpResponseRedirect(self.page.get_absolute_url())
+        raise http.Http404('Page is unavailable')
 
-    def home_new(self, title):
-        title = title or ''
-        self.page = self.mdp_type.markdownpage_set.find(title)
-        if self.page:
-            return self.redirect()
+    def get_object(self):
+        return self.page
 
-        return _mdpage_new_page(self.request, self, title)
 
-    def home_search(self, search):
-        return self.render('search.html',
-            pages=self.mdp_type.markdownpage_set.search(search),
-            search=search
+class PageView(PageViewMixin, DetailView):
+    template_name = 'page.html'
+    as_text = False
+    permission_type = 'read'
+
+    def get_context_data(self, **kwargs):
+        page = self.page
+        return super().get_context_data(
+            mdp_type=page.type,
+            title=page.title,
+            page=page,
+            **kwargs
         )
 
-    def home_listing(self, *args):
-        return self.render('home/base.html',
-            pages=self.mdp_type.markdownpage_set.order_by('title'),
-            title='Page Listing'
+    def render_to_response(self, *args, **kwargs):
+        if self.as_text:
+            return http.HttpResponse(
+                self.page.text,
+                content_type="text/plain; charset=utf8"
+            )
+
+        return super().render_to_response(*args, **kwargs)
+
+
+class PageHistoryView(PageView):
+    template_name = 'history.html'
+    permission_type = 'extras'
+
+    def get_context_data(self, **kwargs):
+        version = self.kwargs.get('version')
+        if version:
+            page = self.page
+            archive = get_object_or_404(MarkdownPageArchive, page=page, pk=version)
+            diff = DiffPatch.diff(
+                archive.text, page.text,
+                their_filename=f'archive-{archive.pk}', our_filename='current',
+                their_ts=archive.created, our_ts=page.updated,
+                context=3
+            )
+            kwargs.update(archive=archive, diff=diff)
+
+        return super().get_context_data(**kwargs)
+
+
+class PageFormViewMixin(PageViewMixin):
+    model = MarkdownPage
+    form_class = MarkdownPageForm
+    context_object_name = 'page'
+    permission_type = 'write'
+
+    def get_form_kwargs(self):
+        mdp_type = get_object_or_404(
+            MarkdownPageType.objects.published(),
+            prefix=self.kwargs['prefix']
         )
-
-    def home_topic(self, tag):
-        return self.render('home/base.html',
-            pages=self.mdp_type.tagged_by(tag).order_by('title') if tag else [],
-            title='Pages for topic "{}"'.format(tag),
-            tag=tag
-        )
+        kwargs = super().get_form_kwargs()
+        kwargs.update(request=self.request, mdp_type=mdp_type)
+        return kwargs
 
 
-def mdpage_home(request, prefix):
-    vh = ViewHandler(request, prefix)
-    for key in ('search', 'new', 'topic', 'listing'):
-        if key in request.GET:
-            func = getattr(vh, 'home_{}'.format(key))
-            return func(request.GET.get(key))
-
-    home_slug = vh.mdp_type.get_setting('home_slug')
-    if home_slug is not None:
-        if vh.page:
-            return vh.render('page.html')
-
-    return vh.home_listing(None)
+class NewPageView(PageFormViewMixin, CreateView):
+    template_name = 'edit.html'
 
 
-def mdpage_history(request, prefix, slug, version=None):
-    vh = ViewHandler(request, prefix, slug)
-    arc = None if version is None else vh.page.markdownpagearchive_set.get(version=version)
-    return vh.render('history.html', archive=arc)
+class PageEditView(PageFormViewMixin, UpdateView):
+    template_name = 'edit.html'
 
 
-def mdpage_view(request, prefix, slug):
-    vh = ViewHandler(request, prefix, slug)
-    if vh.page:
-        return vh.render('page.html')
 
-    if not request.user.is_authenticated:
-        raise http.Http404('Page not found')
-
-    return _mdpage_new_page(request, vh, slug.capitalize())
-
-
-def mdpage_text(request, prefix, slug):
-    vh = ViewHandler(request, prefix, slug)
-    return http.HttpResponse(vh.page.text, content_type="text/plain; charset=utf8")
-
-
-def mdpage_attach(request, prefix, slug):
-    vh = ViewHandler(request, prefix, slug)
-    if request.method == 'POST':
-        form = ContentForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save(vh.page)
-            return vh.redirect()
-    else:
-        form =  ContentForm()
-
-    return vh.render('attach.html', form=form)
-
-
-def mdpage_edit(request, prefix, slug):
-    vh = ViewHandler(request, prefix, slug)
-    if request.method == 'POST':
-        if 'cancel' in request.POST:
-            vh.page.unlock(request)
-            return vh.redirect()
-
-        form = MarkdownPageForm(request.POST, instance=vh.page)
-        if form.is_valid():
-            form.save(request)
-            return vh.redirect()
-    else:
-        if vh.page.lock(request):
-            vh.page.unlock(request)
-            # return mdpage_render(request, 'locked.html', mdp_type, data)
-
-        form = MarkdownPageForm(instance=vh.page)
-
-    return vh.render('edit.html', form=form)
-
-
+def view(request, *args, **kwargs):
+    return http.JsonResponse({
+        'title': 'needs work',
+        'url': request.path,
+        'args': args,
+        'kwargs': kwargs,
+    })

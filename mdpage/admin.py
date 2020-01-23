@@ -8,7 +8,6 @@ from . import models as mdpage
 class MarkdownPageAdmin(admin.ModelAdmin):
     list_display = (
         'title',
-        'version',
         'created',
         'updated',
     )
@@ -21,7 +20,6 @@ class MarkdownPageAdmin(admin.ModelAdmin):
 class MarkdownPageArchiveAdmin(admin.ModelAdmin):
     list_display = (
         'page',
-        'version',
         'created',
     )
     # search_fields = ('',)

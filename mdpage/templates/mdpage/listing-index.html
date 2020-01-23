@@ -1,4 +1,4 @@
-<section class="page-index{% if pages|length > 8 %} columnar{% endif %}">
+<section data-count="{{ pages|length }}" class="page-index{% if pages|length > 8 %} columnar{% endif %}">
     {% regroup pages by title.0.upper as letters %}
     {% for letter in letters %}
     <div class="page-group">

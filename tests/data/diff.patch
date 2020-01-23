@@ -1,0 +1,14 @@
+--- theirfile	2020-01-15T11:55:45.790939-10:00
++++ myfile	2020-01-15T11:57:43.070612-10:00
+@@ -1,6 +1,9 @@
+ Line 1.
+-Line 2.
++This is line 2.
+ Line 3.
+ Line 4.
+-Line 5.
++Line 6.
+ Line 7.
++Line 9.
++Line 10.
++Line 11.

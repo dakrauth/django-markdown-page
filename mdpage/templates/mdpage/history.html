@@ -6,23 +6,19 @@
     <table class="table table-striped table-bordered">
         <thead>
             <tr>
-                <th class="text-center">Version</th>
                 <th class="text-center">Update</th>
                 <th class="text-center">Author</th>
                 <th class="text-center">Length</th>
-                <th class="text-center">View</th>
             </tr>
         </thead>
         <tbody>
             {% for arc in page.markdownpagearchive_set.all %}
             <tr class="{% cycle 'odd' 'even' %}">
-                <td class="text-center">{{ arc.version }}</td>
-                <td class="text-center">{{ arc.created }}</td>
-                <td class="text-center">{{ arc.user|default:""}}</td>
-                <td class="text-center">{{ arc.text|length|filesizeformat }}</td>
                 <td class="text-center">
-                    <a href="{{ arc.get_absolute_url }}">View {{ arc.version }}</a>
+                    <a href="{{ arc.get_absolute_url }}">{{ arc }}</a>
                 </td>
+                <td class="text-center">{{ arc.author|default:""}}</td>
+                <td class="text-center">{{ arc.text|length|filesizeformat }}</td>
             </tr>
             {% empty %}
             <tr>
@@ -36,5 +32,13 @@
     <h2 class="heading" id="wiki-title">{{ archive }} <small>{{ archive.text|length }} bytes</small></h2>
     <pre class="markdown">{{ archive.text }}
     </pre>
+    {% if diff %}
+    <h2 class="heading">Difference With Current</h2>
+    <div class="md-page-diff"><div class="diff-line-wrapper">{% for line in diff.splitlines  %}
+<div class="line{% if line.0 == '-' %} minus{% elif line.0 == '+' %} add{% endif %}">{{ line }}&nbsp;</div>{% endfor %}</div></div>
+    <script>
+        document.querySelectorAll('.diff > .diff-line-wrapper').forEach(e=>e.style.width = e.scrollWidth + 'px');
+    </script>
+    {% endif %}
     {% endif %}
 {% endblock mdpage_content %}

@@ -7,7 +7,20 @@
     {% if mdp_type.show_recent %}
     <p><a href="{{ mdp_type.get_absolute_url }}?recent">Recent Activity</a></p>
     {% endif %}
-    {% select_template mdp_type mdp_type.home_layout as tmpl %}
+    {% if topic or search %}
+    <p>
+        {% if topic %}
+        Filtered by topic <em>{{ topic }}</em>.<br>
+
+        {% endif %}
+        {% if search %}
+        Filtered by search <em>{{ search }}</em>.<br>
+        {% endif %}
+        <span class="badge badge-pill badge-dark" aria-label="Close">
+            <a href="{{ mdp_type.get_absolute_url }}" aria-hidden="true">&times;</a></span>
+    </p>
+    {% endif %}
+    {% select_template mdp_type mdp_type.listing_layout as tmpl %}
     {% if mdp_type.show_topics %}
     <div class="row">
         <div class="col-md-10">
@@ -21,5 +34,13 @@
     {% else %}
     {% include tmpl %}
     {% endif %}
+
     {% paginate %}
+
+    {% if pending %}
+    <h2>Pending Pages</h2>
+    <ul>{% for page in pending %}
+        <li><em><a href="{{ page.get_absolute_url }}">{{ page.title }}</a></em></li>
+    {% endfor %}</ul>
+    {% endif %}
 {% endblock mdpage_content %}

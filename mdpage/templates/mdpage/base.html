@@ -19,7 +19,7 @@
                 </li>
                 {% if user.is_authenticated %}
                 <li class="nav-item ">
-                    <a class="nav-link" href="{{ mdpage_listing }}?new">New</a></li>
+                    <a class="nav-link" href="{% url "mdpage-create" %}">New</a></li>
                 {% endif %}
           </ul>
           {% block mdpage_search %}

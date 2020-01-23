@@ -18,32 +18,29 @@ TagsFormset = modelformset_factory(models.MarkdownPage, form=TagForm)
 
 class MarkdownPageForm(forms.ModelForm):
     text = forms.CharField(widget=forms.Textarea)
+    timestamp = forms.CharField(widget=forms.HiddenInput())
 
     class Meta:
         model = models.MarkdownPage
-        fields = ('title', 'status', 'text', 'tags')
+        fields = ('title', 'status', 'text', 'tags', 'timestamp')
 
-    def clean(self):
-        if (
-            self.instance and
-            self.instance.locked and
-            self.instance.locked < timezone.now()
-        ):
-            raise forms.ValidationError('Allotted time has expired.')
+    def __init__(self, initial=None, instance=None, **kwargs):
+        self.request = kwargs.pop('request')
+        self.mdp_type = kwargs.pop('mdp_type')
+        initial['timestamp'] = instance.updated.isoformat() if instance else 'N/A'
+        super().__init__(initial=initial, instance=instance, **kwargs)
 
-        return self.cleaned_data
-
-    def save(self, request):
+    def save(self):
         if not self.has_changed():
-            messages.warning(request, 'No changes saved')
+            messages.warning(self.request, 'No changes saved')
         else:
-            #import ipdb; ipdb.set_trace()
             instance = super(MarkdownPageForm, self).save(commit=False)
-            instance.save(user=request.user)
+            if not instance.pk:
+                instance.type = self.mdp_type
+            instance.save(user=self.request.user)
             self.save_m2m()
-            messages.success(request, 'Page saved')
+            messages.success(self.request, 'Page saved')
 
-        self.instance.unlock(request)
         return self.instance
 
 
