@@ -5,6 +5,7 @@ from . import models as mdpage
 # See http://docs.djangoproject.com/en/dev/ref/contrib/admin/ for
 # a full list of the options you can use in these classes.
 
+
 class MarkdownPageAdmin(admin.ModelAdmin):
     list_display = (
         'title',
@@ -16,7 +17,6 @@ class MarkdownPageAdmin(admin.ModelAdmin):
     # ordering = ('',)
 
 
-
 class MarkdownPageArchiveAdmin(admin.ModelAdmin):
     list_display = (
         'page',
@@ -25,7 +25,6 @@ class MarkdownPageArchiveAdmin(admin.ModelAdmin):
     # search_fields = ('',)
     # list_filter = ('',)
     # ordering = ('',)
-
 
 
 class StaticContentAdmin(admin.ModelAdmin):
@@ -42,12 +41,9 @@ class StaticContentAdmin(admin.ModelAdmin):
     # ordering = ('',)
 
 
-
 # Each of these lines registers the admin interface for one model. If
 # you don't want the admin interface for a particular model, remove
 # the line which registers it.
 admin.site.register(mdpage.MarkdownPage, MarkdownPageAdmin)
 admin.site.register(mdpage.MarkdownPageArchive, MarkdownPageArchiveAdmin)
 admin.site.register(mdpage.StaticContent, StaticContentAdmin)
-
-

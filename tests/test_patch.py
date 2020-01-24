@@ -12,13 +12,14 @@ import unittest
 import subprocess
 from pathlib import Path
 
-import patch
+from mdpage import diffpatch as patch
 
-TESTDIR = Path(__file__).parent / 'test_patches'
+TEST_DIR = Path(__file__).parent
+TEST_DATA_DIR = TEST_DIR / 'data'
 
 
 def tf(name):
-    return TESTDIR / name
+    return TEST_DATA_DIR / name
 
 
 def read(filename):
@@ -42,12 +43,13 @@ class TestPatchFiles(unittest.TestCase):
         boilerplate for running *.patch file tests
         """
         patch_file = tf(testname)
-        res = subprocess.run([
+        args = [
             sys.executable,
-            TESTDIR.parent / "patch.py",
-            f"{patch_file}.patch",
-            f"{patch_file}.from"
-        ], capture_output=True)
+            TEST_DIR.parent / "mdpage/diffpatch.py",
+            tf(f"{patch_file}.patch"),
+            tf(f"{patch_file}.from")
+        ]
+        res = subprocess.run(args, capture_output=True)
 
         if res.returncode != 0:
             print('{sep}\nReturn code: {code}\n{stderr}\n{sep}'.format(
@@ -98,7 +100,7 @@ class TestPatchParse(unittest.TestCase):
         ps = patch.fromfile(tf("02uni_newline.patch"))
         self.assertNotEqual(ps, False)
         self.assertEqual(len(ps), 1)
-        ps = patch.fromfile(tf("data/failing/not-a-patch.log"))
+        ps = patch.fromfile(tf("failing/not-a-patch.log"))
         self.assertFalse(ps)
 
     def test_no_header_for_plain_diff_with_single_file(self):
@@ -106,21 +108,21 @@ class TestPatchParse(unittest.TestCase):
         self.assertEqual(ps.patches[0].header, [])
 
     def test_hunk_desc(self):
-        ps = patch.fromfile(tf('data/git-changed-file.diff'))
+        ps = patch.fromfile(tf('git-changed-file.diff'))
         self.assertEqual(ps.patches[0].hunks[0].desc, 'class JSONPluginMgr(object):')
 
     def test_fail_missing_hunk_line(self):
-        data = readtf("data/failing/missing-hunk-line.diff")
+        data = readtf("failing/missing-hunk-line.diff")
         ps = patch.PatchSet()
         self.assertNotEqual(ps.parse(data), True)
 
     def test_fail_context_format(self):
-        data = readtf("data/failing/context-format.diff")
+        data = readtf("failing/context-format.diff")
         res = patch.PatchSet().parse(data)
         self.assertFalse(res)
 
     def test_fail_not_a_patch(self):
-        data = readtf("data/failing/not-a-patch.log")
+        data = readtf("failing/not-a-patch.log")
         res = patch.PatchSet().parse(data)
         self.assertFalse(res)
 
@@ -128,8 +130,8 @@ class TestPatchParse(unittest.TestCase):
 class TestPatchApply(unittest.TestCase):
 
     def test_apply_returns_false_on_failure(self):
-        ps = patch.fromfile(tf('data/failing/non-empty-patch-for-empty-file.diff'))
-        data = readtf('data/failing/upload.py')
+        ps = patch.fromfile(tf('failing/non-empty-patch-for-empty-file.diff'))
+        data = readtf('failing/upload.py')
         self.assertFalse(ps.apply(data))
 
     def test_apply_returns_true_on_success(self):

@@ -52,4 +52,3 @@ def mdpage_markdown(text, mdp_type=None):
         k.replace('markdown_', '', 1): v for k, v in settings.items()
         if k.startswith('markdown_')
     }).convert(text)
-

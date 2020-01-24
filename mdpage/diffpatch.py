@@ -2,7 +2,7 @@
 """
     Patch utility to apply unified diffs
 
-    Brute-force line-by-line non-recursive parsing 
+    Brute-force line-by-line non-recursive parsing
 
     Copyright (c) 2008-2016 anatoly techtonik
     Available under the terms of MIT license
@@ -27,12 +27,12 @@ from datetime import datetime, timezone
 logger = logging.getLogger(__name__)
 
 
-class Path(_BasePath):
+class Path(type(_BasePath())):
 
     def mod_time(self):
         return datetime.fromtimestamp(
-           self.stat().st_mtime,
-           timezone.utc
+            self.stat().st_mtime,
+            timezone.utc
         ).astimezone().isoformat()
 
 
@@ -52,7 +52,7 @@ class Hunk(Counter):
 
     def __init__(self, **kwargs):
         super().__init__()
-        self.start_src = None #: line count starts with 1
+        self.start_src = None
         self.start_tgt = None
         self.invalid = False
 
@@ -101,7 +101,7 @@ class Patch(Counter):
         return type
 
     def detect_type(self):
-        """detect and return type for the specified Patch object analyzes header and file_names info"""
+        """detect and set type for the Patch object"""
         # NOTE: must be run before file_names are normalized
         # common checks for git and plain
         if not (
@@ -243,15 +243,15 @@ class PatchSet:
 
         # define states (possible file regions) that direct parse flow
         head_scan = True  # start with scanning header
-        file_names = False # lines starting with --- and +++
+        file_names = False  # lines starting with --- and +++
         hunk_head = False  # @@ -R +R @@ sequence
         hunk_body = False  #
         hunk_skip = False  # skipping invalid hunk mode
-        hunk_parsed = False # state after successfully parsed hunk
+        hunk_parsed = False  # state after successfully parsed hunk
 
         # regexp to match start of hunk, used groups - 1,3,4,6
-        re_hunk_start = re.compile("^@@ -(\d+)(,(\d+))? \+(\d+)(,(\d+))? @@")
-        
+        re_hunk_start = re.compile(r"^@@ -(\d+)(,(\d+))? \+(\d+)(,(\d+))? @@")
+
         # temp buffers for header and file_names info
         header = []
         src_name = None
@@ -277,11 +277,13 @@ class PatchSet:
                     header.append(stream.line)
                     stream.next_line()
                 if stream.exhausted:
-                    if patch == None:
+                    if patch is None:
                         logger.debug("no patch data found")  # error is shown later
                         self.errors += 1
                     else:
-                        logger.info("{} unparsed bytes at end of stream".format(len(''.join(header))))
+                        logger.info(
+                            "{} unparsed bytes at end of stream".format(len(''.join(header)))
+                        )
                         self.warnings += 1
                     # this is actually a loop exit
                     continue
@@ -299,9 +301,9 @@ class PatchSet:
                 #     (this happens when diff is saved by copy/pasting to editor
                 #      that strips trailing whitespace)
                 if line.strip("\n") == "":
-                        logger.debug("expanding empty line in a middle of hunk body")
-                        self.warnings += 1
-                        line = ' ' + line
+                    logger.debug("expanding empty line in a middle of hunk body")
+                    self.warnings += 1
+                    line = ' ' + line
 
                 # process line first
                 if re.match("^[- \\+\\\\]", line):
@@ -314,7 +316,9 @@ class PatchSet:
                         hunk_actual["lines_tgt"] += 1
                     hunk.text.append(line)
                 else:
-                    logger.warning(f"invalid hunk {next_hunk_no} at {lineno+1} for target {patch.target}")
+                    logger.warning(
+                        f"invalid hunk {next_hunk_no} at {lineno+1} for target {patch.target}"
+                    )
 
                     # add hunk status node
                     hunk.invalid = True
@@ -326,8 +330,13 @@ class PatchSet:
                     hunk_skip = True
 
                 # check exit conditions
-                if hunk_actual["lines_src"] > hunk.lines_src or hunk_actual["lines_tgt"] > hunk.lines_tgt:
-                    logger.warning(f"extra lines for hunk {next_hunk_no} at {lineno+1} for target {patch.target}")
+                if (
+                    hunk_actual["lines_src"] > hunk.lines_src or
+                    hunk_actual["lines_tgt"] > hunk.lines_tgt
+                ):
+                    logger.warning(
+                        f"extra lines for hunk {next_hunk_no} @ {lineno+1} for {patch.target}"
+                    )
 
                     # add hunk status node
                     hunk.invalid = True
@@ -337,7 +346,10 @@ class PatchSet:
                     # switch to hunk_skip state
                     hunk_body = False
                     hunk_skip = True
-                elif hunk.lines_src == hunk_actual["lines_src"] and hunk.lines_tgt == hunk_actual["lines_tgt"]:
+                elif (
+                    hunk.lines_src == hunk_actual["lines_src"] and
+                    hunk.lines_tgt == hunk_actual["lines_tgt"]
+                ):
                     # hunk parsed successfully
                     patch.add(hunk)
 
@@ -360,7 +372,7 @@ class PatchSet:
 
             if file_names:
                 if line.startswith("--- "):
-                    if src_name != None:
+                    if src_name is not None:
                         logger.warning("skipping false patch for %s" % src_name)
                         src_name = None
                         # double source filename line is encountered
@@ -377,7 +389,7 @@ class PatchSet:
                         file_names = False
                         head_scan = True
                 elif not line.startswith("+++ "):
-                    if src_name != None:
+                    if src_name is not None:
                         logger.warning("skipping invalid patch with no target for %s" % src_name)
                         self.errors += 1
                         src_name = None
@@ -387,9 +399,11 @@ class PatchSet:
                     file_names = False
                     head_scan = True
                 else:
-                    if tgt_name != None:
-                        # XXX seems to be a dead branch  
-                        logger.warning("skipping invalid patch - double target at line %d" % (lineno+1))
+                    if tgt_name is not None:
+                        # XXX seems to be a dead branch
+                        logger.warning(
+                            "skipping invalid patch, double target line %d" % (lineno + 1)
+                        )
                         self.errors += 1
                         src_name = tgt_name = None
                         file_names = False
@@ -397,7 +411,9 @@ class PatchSet:
                     else:
                         match = re.match(r"^\+\+\+ ([^\t]+)", line)
                         if not match:
-                            logger.warning("skipping invalid patch - no target filename at line %d" % (lineno+1))
+                            logger.warning(
+                                "skipping invalid patch, no target file at line %d" % (lineno + 1)
+                            )
                             self.errors += 1
                             src_name = None
 
@@ -405,7 +421,7 @@ class PatchSet:
                             file_names = False
                             head_scan = True
                         else:
-                            if patch: # for the first run patch is None
+                            if patch:  # for the first run patch is None
                                 self.patches.append(patch)
 
                             patch = Patch(src_name, match.group(1).strip(), header)
@@ -461,8 +477,8 @@ class PatchSet:
                 if len(self.patches) == 0:
                     logger.warning("error: no patch data found!")
                     return False
-                else: # extra data at the end of file
-                    pass 
+                else:  # extra data at the end of file
+                    pass
             else:
                 logger.warning("error: patch stream is incomplete!")
                 self.errors += 1
@@ -496,8 +512,7 @@ class PatchSet:
         delete = []
         delta = 0    # size change in bytes
         namelen = 0
-        maxdiff = 0  # max number of changes for single file
-                                  # (for histogram width calculation)
+        maxdiff = 0  # max number of changes for single file (for histogram width calculation)
         for patch in self.patches:
             i = d = 0
             for hunk in patch:
@@ -516,7 +531,7 @@ class PatchSet:
 
         output = ''
         statlen = len(str(maxdiff))  # stats column width
-        for i,n in enumerate(names):
+        for i, n in enumerate(names):
             # %-19s | %-4d %s
             fmt = " %-" + str(namelen) + "s | %" + str(statlen) + "s %s\n"
 
@@ -533,13 +548,13 @@ class PatchSet:
                 # make sure every entry gets at least one + or -
                 iwidth = 1 if 0 < iratio < 1 else int(iratio)
                 dwidth = 1 if 0 < dratio < 1 else int(dratio)
-                #print(iratio, dratio, iwidth, dwidth, histwidth)
+                # print(iratio, dratio, iwidth, dwidth, histwidth)
                 hist = "+" * iwidth + "-" * dwidth
 
             # -- /calculating +- histogram --
             output += (fmt % (names[i], str(insert[i] + delete[i]), hist))
-  
-        return  (
+
+        return (
             f"{output} {len(names)} files changed, {sum(insert)} insertions(+), "
             f"{sum(delete)} deletions(-), {delta:+d} bytes"
         )
@@ -569,7 +584,7 @@ class PatchSet:
                 continue
             elif lineno == hunk.start_src:
                 hunk_find = [x[1:-1] for x in hunk.text if x[0] in " -"]
-                hunk_repl = [x[1:-1] for x in hunk.text if x[0] in " +"]
+                hunk_repl = [x[1:-1] for x in hunk.text if x[0] in " +"]  # noqa
                 hunk_lineno = 0
 
             # check hunks in source file
@@ -577,7 +592,9 @@ class PatchSet:
                 if line.rstrip("\n") == hunk_find[hunk_lineno]:
                     hunk_lineno += 1
                 else:
-                    logger.info(f"file {patch.source} hunk #{hunk_no+1} doesn't match source at line {lineno}")
+                    logger.info(
+                        f"file {patch.source} hunk {hunk_no+1} doesn't match source, line {lineno}"
+                    )
                     logger.info("expected: {}".format(hunk_find[hunk_lineno]))
                     logger.info("actual  : {}".format(line.rstrip("\n")))
                     # not counting this as error, because file may already be patched.
@@ -633,7 +650,7 @@ class PatchSet:
                     if line[0] == '+':
                         h.text[i] = '-' + line[1:]
                     elif line[0] == '-':
-                        h.text[i] = '+' +line[1:]
+                        h.text[i] = '+' + line[1:]
 
     def revert(self):
         """ apply patch in reverse order """
@@ -650,7 +667,7 @@ class PatchSet:
             for hno, h in enumerate(hunks):
                 # skip to first line of the hunk
                 while lineno < h.start_tgt:
-                    if not len(line): # eof
+                    if not len(line):  # eof
                         logger.debug("check failed - premature eof before hunk: %d" % (hno + 1))
                         raise NoMatch
                     line = stream.readline()
@@ -697,7 +714,7 @@ class PatchSet:
                         stream.readline()
                         srclineno += 1
                     lines.append(hline[1:])
-          
+
         for line in stream:
             lines.append(line)
 
@@ -815,7 +832,8 @@ def main():
         logger.addHandler(streamhandler)
 
     if args.pdb:
-        import ipdb; ipdb.set_trace()
+        import ipdb
+        ipdb.set_trace()
 
     try:
         if args.diffpatch:
@@ -843,7 +861,7 @@ def main():
             logger.error('Errors:\n{}'.format('\n'.join(res.errors)))
             sys.exit(1)
 
-    except:
+    except Exception:
         logger.exception('Something is foobar')
         sys.exit(2)
 

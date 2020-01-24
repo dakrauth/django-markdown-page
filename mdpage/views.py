@@ -1,5 +1,4 @@
 from django import http
-from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils.functional import cached_property
 from django.core.exceptions import ImproperlyConfigured
@@ -126,6 +125,7 @@ class LandingView(BasePageMixin, ListView):
             **kwargs
         )
 
+
 class PageViewMixin(BasePageMixin):
 
     @property
@@ -219,7 +219,6 @@ class NewPageView(PageFormViewMixin, CreateView):
 
 class PageEditView(PageFormViewMixin, UpdateView):
     template_name = 'edit.html'
-
 
 
 def view(request, *args, **kwargs):

@@ -1,7 +1,7 @@
 import re
 import unicodedata
 
-from .markdown import mdpage_markdown
+from .markdown import mdpage_markdown  # noqa
 
 
 def get_mdp_type_template_list(base_part, mdp_prefix=None):
@@ -14,7 +14,5 @@ def get_mdp_type_template_list(base_part, mdp_prefix=None):
 
 def slugify(value):
     value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
-    value = re.sub('[^\w\s-]', '', value.decode()).strip().lower()
-    return re.sub('[-\s]+', '-', value)
-
-
+    value = re.sub(r'[^\w\s-]', '', value.decode()).strip().lower()
+    return re.sub(r'[-\s]+', '-', value)

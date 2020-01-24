@@ -1,19 +1,17 @@
 import os
 import operator
 import mimetypes
-from datetime import timedelta
 from functools import reduce
 from functools import partialmethod
 
 from django.db import models
-from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 
 from choice_enum import ChoiceEnumeration
 from taggit.managers import TaggableManager
-from taggit.models import Tag, TaggedItem
+from taggit.models import Tag
 
 from .utils import slugify, mdpage_markdown
 from .conf import get_settings
@@ -53,14 +51,19 @@ class MarkdownPageBase(models.Model):
 
     class Status(ChoiceEnumeration):
         PENDING = ChoiceEnumeration.Option('PEND', 'Pending', default=True)
-        PUBLISHED = ChoiceEnumeration.Option('PUB',  'Published')
+        PUBLISHED = ChoiceEnumeration.Option('PUB', 'Published')
         WITHDRAWN = ChoiceEnumeration.Option('GONE', 'Withdrawn')
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     pub_date = models.DateTimeField(null=True, blank=True)
     end_date = models.DateTimeField(null=True, blank=True)
-    status = models.CharField(choices=Status.CHOICES, default=Status.DEFAULT, max_length=4, db_index=True)
+    status = models.CharField(
+        choices=Status.CHOICES,
+        default=Status.DEFAULT,
+        max_length=4,
+        db_index=True
+    )
 
     class Meta:
         abstract = True
@@ -76,6 +79,7 @@ class MarkdownPageBase(models.Model):
     @property
     def is_withdrawn(self):
         return self.status == self.Status.WITHDRAWN
+
     @property
     def is_published(self):
         now = timezone.now()
@@ -84,7 +88,6 @@ class MarkdownPageBase(models.Model):
             (self.pub_date is None or self.pub_date <= now)
         ))
 
-    
 
 class MarkdownPageType(MarkdownPageBase):
     prefix = models.SlugField(max_length=50, unique=True, blank=True)
@@ -105,7 +108,7 @@ class MarkdownPageType(MarkdownPageBase):
     def tags(self):
         return Tag.objects.filter(
             markdownpage__type=self
-        ).annotate(count=models.Count('name')).values('name','slug','count')
+        ).annotate(count=models.Count('name')).values('name', 'slug', 'count')
 
     def tagged_by(self, tag):
         return self.markdownpage_set.filter(tags__name=tag)
@@ -166,7 +169,7 @@ class MarkdownPage(MarkdownPageBase):
     tags = TaggableManager(blank=True)
 
     class Meta:
-        ordering = ('title',)
+        ordering = ('title', )
         unique_together = (('type', 'slug'), ('type', 'title'))
 
     def __str__(self):
@@ -189,8 +192,8 @@ class MarkdownPage(MarkdownPageBase):
         return 'mdpage:{}'.format(self.pk)
 
     # deprecated
-    def unlock(self, request): pass
-    def lock(self, request): pass
+    def unlock(self, request): pass  # noqa
+    def lock(self, request): pass  # noqa
 
     def make_mdpage_link(self, title):
         return self._reverse('mdpage_page', slug=slugify(title))
@@ -211,8 +214,7 @@ class MarkdownPage(MarkdownPageBase):
             )
 
         self.html = mdpage_markdown(self.text, self.type)
-        super(MarkdownPage,self).save(*args, **kwargs)
-
+        super().save(*args, **kwargs)
 
     @property
     def tags_str(self):
@@ -242,7 +244,7 @@ class MarkdownPageArchive(models.Model):
     @property
     def author(self):
         return User.objects.get(pk=self.user_id) if self.user_id else None
-    
+
     def get_absolute_url(self):
         return reverse('mdpage-history-version', kwargs={
             'prefix': self.page.type.prefix,
@@ -292,4 +294,3 @@ class StaticContent(models.Model):
     @property
     def mimetype(self):
         return '{}/{}'.format(self.type, self.subtype)
-

@@ -1,5 +1,4 @@
 from django import forms
-from django.utils import timezone
 from django.contrib import messages
 from django.forms.models import modelformset_factory
 
@@ -55,4 +54,3 @@ class ContentForm(forms.ModelForm):
         c.page = page
         c.save()
         return c
-

@@ -1,6 +1,5 @@
 from django import template
 from django.template import loader
-from django.utils.safestring import mark_safe
 from mdpage import utils
 
 register = template.Library()
