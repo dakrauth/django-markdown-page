@@ -7,7 +7,9 @@ from ..conf import get_settings
 class MDPageMarkdown(Markdown):
 
     def __init__(self, settings):
-        super(MDPageMarkdown, self).__init__()
+        super(MDPageMarkdown, self).__init__(extras=[
+            'wiki-tables', 'tables', 'footnotes', 'fenced-code-blocks', 'header-ids', 'task_list'
+        ])
 
         self.table_classes = settings.get('table_classes', '')
         self.link_classes = settings.get('link_classes', '')
