@@ -6,27 +6,36 @@ from . import models as mdpage
 # a full list of the options you can use in these classes.
 
 
+@admin.register(mdpage.MarkdownPage)
 class MarkdownPageAdmin(admin.ModelAdmin):
     list_display = (
         'title',
+        'type',
+        'status',
         'created',
         'updated',
     )
     search_fields = ('title', 'source')
-    # list_filter = ('',)
+    list_filter = ('type', 'status')
     # ordering = ('',)
 
 
+@admin.register(mdpage.MarkdownPageArchive)
 class MarkdownPageArchiveAdmin(admin.ModelAdmin):
     list_display = (
-        'page',
+        'page_title',
+        'page_type',
         'created',
     )
-    # search_fields = ('',)
-    # list_filter = ('',)
-    # ordering = ('',)
+
+    def page_title(self, obj):
+        return obj.page.title
+
+    def page_type(self, obj):
+        return obj.page.type
 
 
+@admin.register(mdpage.StaticContent)
 class StaticContentAdmin(admin.ModelAdmin):
     list_display = (
         'label',
@@ -36,14 +45,16 @@ class StaticContentAdmin(admin.ModelAdmin):
         'created',
         'updated',
     )
-    # search_fields = ('',)
-    # list_filter = ('',)
-    # ordering = ('',)
 
 
-# Each of these lines registers the admin interface for one model. If
-# you don't want the admin interface for a particular model, remove
-# the line which registers it.
-admin.site.register(mdpage.MarkdownPage, MarkdownPageAdmin)
-admin.site.register(mdpage.MarkdownPageArchive, MarkdownPageArchiveAdmin)
-admin.site.register(mdpage.StaticContent, StaticContentAdmin)
+@admin.register(mdpage.MarkdownPageType)
+class MarkdownPageTypeAdmin(admin.ModelAdmin):
+    list_display = (
+        'prefix', 
+        'description', 
+        'created', 
+        'updated', 
+        'pub_date', 
+        'end_date', 
+        'status', 
+    )
