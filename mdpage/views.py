@@ -73,18 +73,25 @@ class PermissionMixin(UserPassesTestMixin):
 
 class TemplateNameMixin:
 
+    @property
+    def namespace(self):
+        return self.request.resolver_match.namespace
+
     def get_template_names(self):
         if self.template_name is None:
             raise ImproperlyConfigured("Missing definition of 'template_name'")
 
         return utils.get_mdp_type_template_list(
             self.template_name,
-            self.kwargs['prefix'],
+            self.namespace,
         )
 
 
 class BasePageMixin(PermissionMixin, TemplateNameMixin):
-    pass
+
+    @cached_property
+    def mdp_type(self):
+        return get_object_or_404(MarkdownPageType.objects.published(), prefix=self.namespace)
 
 
 class LandingView(BasePageMixin, ListView):
@@ -93,14 +100,10 @@ class LandingView(BasePageMixin, ListView):
     context_object_name = 'pages'
 
     def get_queryset(self):
-        return MarkdownPage.objects.published(type__prefix=self.kwargs['prefix'])
+        return MarkdownPage.objects.published(type__prefix=self.namespace)
 
     def get_context_data(self, **kwargs):
-        mdp_type = get_object_or_404(
-            MarkdownPageType.objects.published(),
-            prefix=self.kwargs['prefix']
-        )
-
+        mdp_type = self.mdp_type
         pages = self.object_list
         search = self.request.GET.get('search', '')
         if search:
@@ -111,7 +114,7 @@ class LandingView(BasePageMixin, ListView):
             pages = pages.filter(tags__name=topic)
 
         if self.perms.check(self.request.user, 'write'):
-            pending = MarkdownPage.objects.unpublished(type__prefix=self.kwargs['prefix'])
+            pending = MarkdownPage.objects.unpublished(type__prefix=self.namespace)
         else:
             pending = []
 
@@ -140,7 +143,7 @@ class PageViewMixin(BasePageMixin):
 
         page = get_object_or_404(
             MarkdownPage.objects.select_related('type'),
-            type__prefix=self.kwargs['prefix'],
+            type__prefix=self.namespace,
             slug=slug
         )
 
@@ -152,20 +155,20 @@ class PageViewMixin(BasePageMixin):
     def get_object(self):
         return self.page
 
+    def get_context_data(self, **kwargs):
+        page = self.page
+        return super().get_context_data(
+            mdp_type=page.type if page else self.mdp_type,
+            title=page.title if page else '',
+            page=page,
+            **kwargs
+        )
+
 
 class PageView(PageViewMixin, DetailView):
     template_name = 'page.html'
     as_text = False
     permission_type = 'read'
-
-    def get_context_data(self, **kwargs):
-        page = self.page
-        return super().get_context_data(
-            mdp_type=page.type,
-            title=page.title,
-            page=page,
-            **kwargs
-        )
 
     def render_to_response(self, *args, **kwargs):
         if self.as_text:
@@ -204,12 +207,8 @@ class PageFormViewMixin(PageViewMixin):
     permission_type = 'write'
 
     def get_form_kwargs(self):
-        mdp_type = get_object_or_404(
-            MarkdownPageType.objects.published(),
-            prefix=self.kwargs['prefix']
-        )
         kwargs = super().get_form_kwargs()
-        kwargs.update(request=self.request, mdp_type=mdp_type)
+        kwargs.update(request=self.request, mdp_type=self.mdp_type)
         return kwargs
 
 

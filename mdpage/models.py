@@ -102,8 +102,11 @@ class MarkdownPageType(MarkdownPageBase):
     def __str__(self):
         return self.prefix
 
-    def get_absolute_url(self):
-        return reverse('mdpage-home', kwargs={'prefix': self.prefix})
+    def _reverse(self, name):
+        return reverse(f'{self.prefix}:{name}')
+
+    get_absolute_url = partialmethod(_reverse, 'home')
+    create_url = partialmethod(_reverse, 'create')
 
     def tags(self):
         return Tag.objects.filter(
@@ -176,27 +179,18 @@ class MarkdownPage(MarkdownPageBase):
         slug = '{}:'.format(self.type.prefix) if self.type.prefix else ''
         return '{}{}'.format(slug, self.title)
 
-    def _reverse(self, name, slug=None):
-        return reverse(name, kwargs={
-            'slug': slug or self.slug,
-            'prefix': self.type.prefix
-        })
+    def _reverse(self, name):
+        return reverse(f'{self.type.prefix}:{name}', kwargs={'slug': self.slug})
 
-    get_absolute_url = partialmethod(_reverse, 'mdpage-view')
-    history_url = partialmethod(_reverse, 'mdpage-history')
-    text_url = partialmethod(_reverse, 'mdpage-text')
-    edit_url = partialmethod(_reverse, 'mdpage-edit')
+    get_absolute_url = partialmethod(_reverse, 'view')
+    history_url = partialmethod(_reverse, 'history')
+    text_url = partialmethod(_reverse, 'text')
+    edit_url = partialmethod(_reverse, 'edit')
+    upload_url = partialmethod(_reverse, 'upload')
 
     @property
     def session_key(self):
         return 'mdpage:{}'.format(self.pk)
-
-    # deprecated
-    def unlock(self, request): pass  # noqa
-    def lock(self, request): pass  # noqa
-
-    def make_mdpage_link(self, title):
-        return self._reverse('mdpage_page', slug=slugify(title))
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -246,8 +240,7 @@ class MarkdownPageArchive(models.Model):
         return User.objects.get(pk=self.user_id) if self.user_id else None
 
     def get_absolute_url(self):
-        return reverse('mdpage-history-version', kwargs={
-            'prefix': self.page.type.prefix,
+        return reverse(f'{self.page.type.prefix}:history-version', kwargs={
             'slug': self.page.slug,
             'version': self.pk
         })

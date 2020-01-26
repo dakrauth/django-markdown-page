@@ -45,7 +45,7 @@
 
     {% if 0 %}
     <h2 class="heading wiki-title">
-        <div class="mdpage-menu"><a href="{% url 'mdpage_attach' page.slug %}">Upload Attachment</a></div>
+        <div class="mdpage-menu"><a href="{{ page.upload_url }}">Upload Attachment</a></div>
     </h2>
 
     {% with page.staticcontent_set.all as content %}
