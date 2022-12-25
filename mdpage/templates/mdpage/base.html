@@ -11,21 +11,21 @@
         {% if mdp_type.description %}
         <a class="navbar-brand" href="{{ mdp_type.get_absolute_url }}">{{ mdp_type.description }}</a>
         {% endif %}
-
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+            aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
                 {% if user.is_authenticated %}
                 <li class="nav-item ">
                     <a class="nav-link" href="{{ mdp_type.create_url }}">New</a></li>
                 {% endif %}
-
             </ul>
             <form class="form-inline my-2 my-lg-0">
-                <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+                <input name="search" class="form-control mr-sm-2" type="search"
+                    placeholder="Search" aria-label="Search">
                 <button class="btn btn-primary my-2 my-sm-0" type="submit">Go</button>
             </form>
         </div>
