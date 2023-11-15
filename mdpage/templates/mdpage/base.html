@@ -13,7 +13,7 @@
     <nav class="navbar navbar-expand-lg bg-body-tertiary navbar-mdpage">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ mdp_type.get_absolute_url }}">
-                {% if mdp_type.description %}{{ mdp_type.get_absolute_url }}{% else %} All{% endif %}</a>
+                {% if mdp_type.description %}{{ mdp_type.description }}{% else %} All{% endif %}</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
