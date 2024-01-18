@@ -9,7 +9,6 @@ from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 
-from choice_enum import ChoiceEnumeration
 from taggit.managers import TaggableManager
 from taggit.models import Tag
 
@@ -49,18 +48,18 @@ class PublishedQuerySet(PublishedMixin, models.QuerySet):
 
 class MarkdownPageBase(models.Model):
 
-    class Status(ChoiceEnumeration):
-        PENDING = ChoiceEnumeration.Option('PEND', 'Pending', default=True)
-        PUBLISHED = ChoiceEnumeration.Option('PUB', 'Published')
-        WITHDRAWN = ChoiceEnumeration.Option('GONE', 'Withdrawn')
+    class Status(models.TextChoices):
+        PENDING = 'PEND', 'Pending'
+        PUBLISHED = 'PUB', 'Published'
+        WITHDRAWN = 'GONE', 'Withdrawn'
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     pub_date = models.DateTimeField(null=True, blank=True)
     end_date = models.DateTimeField(null=True, blank=True)
     status = models.CharField(
-        choices=Status.CHOICES,
-        default=Status.DEFAULT,
+        choices=Status.choices,
+        default=Status.PENDING,
         max_length=4,
         db_index=True
     )

@@ -1,7 +1,7 @@
 {% extends "mdpage/base.html" %}
 {% block mdpage_title %}{% if page.title %}{{ page.title }}{% else %}Create New Page{% endif %}{% endblock mdpage_title %}
 {% block mdpage_content %}
-    {% load bootstrap3 %}
+    {% load bootstrap5 %}
     <div class="container edit-container">
         <h1>{% if page.title %}{{ page.title }}{% else %}Create New Page{% endif %}</h1>
         <a class="btn btn-sm btn-info" data-bs-toggle="offcanvas" href="#offcanvasExample" role="button" aria-controls="offcanvasExample">

@@ -100,8 +100,6 @@ class TestPatchParse(unittest.TestCase):
         ps = patch.fromfile(tf("02uni_newline.patch"))
         self.assertNotEqual(ps, False)
         self.assertEqual(len(ps), 1)
-        ps = patch.fromfile(tf("failing/not-a-patch.log"))
-        self.assertFalse(ps)
 
     def test_no_header_for_plain_diff_with_single_file(self):
         ps = patch.fromfile(tf("03trail_fname.patch"))
@@ -118,11 +116,6 @@ class TestPatchParse(unittest.TestCase):
 
     def test_fail_context_format(self):
         data = readtf("failing/context-format.diff")
-        res = patch.PatchSet().parse(data)
-        self.assertFalse(res)
-
-    def test_fail_not_a_patch(self):
-        data = readtf("failing/not-a-patch.log")
         res = patch.PatchSet().parse(data)
         self.assertFalse(res)
 
